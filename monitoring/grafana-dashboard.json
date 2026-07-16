@@ -1,0 +1,52 @@
+{
+  "title": "URL Shortener Dashboard",
+  "uid": "url-shortener",
+  "schemaVersion": 38,
+  "panels": [
+    {
+      "title": "Request Rate",
+      "type": "graph",
+      "targets": [
+        { "expr": "sum(rate(url_shortener_http_requests_total[5m]))", "legendFormat": "All" },
+        { "expr": "sum(rate(url_shortener_http_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "5xx" },
+        { "expr": "sum(rate(url_shortener_http_requests_total{status=~\"4..\"}[5m]))", "legendFormat": "4xx" }
+      ]
+    },
+    {
+      "title": "P95/P99 Latency",
+      "type": "graph",
+      "targets": [
+        { "expr": "histogram_quantile(0.95, sum(rate(url_shortener_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P95" },
+        { "expr": "histogram_quantile(0.99, sum(rate(url_shortener_http_request_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P99" }
+      ]
+    },
+    {
+      "title": "Cache Hit Ratio",
+      "type": "graph",
+      "targets": [
+        { "expr": "sum(rate(url_shortener_cache_hit_total[5m])) / (sum(rate(url_shortener_cache_hit_total[5m])) + sum(rate(url_shortener_cache_miss_total[5m]))) * 100", "legendFormat": "Hit Ratio %" }
+      ]
+    },
+    {
+      "title": "Active Requests",
+      "type": "gauge",
+      "targets": [
+        { "expr": "url_shortener_http_active_requests", "legendFormat": "Active" }
+      ]
+    },
+    {
+      "title": "Error Rate",
+      "type": "graph",
+      "targets": [
+        { "expr": "sum(rate(url_shortener_errors_total[5m]))", "legendFormat": "Errors/s" }
+      ]
+    },
+    {
+      "title": "DB Query Duration P99",
+      "type": "graph",
+      "targets": [
+        { "expr": "histogram_quantile(0.99, sum(rate(url_shortener_db_query_duration_seconds_bucket[5m])) by (le))", "legendFormat": "P99" }
+      ]
+    }
+  ]
+}

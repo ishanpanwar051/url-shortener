@@ -1,0 +1,58 @@
+{
+  "version": "5.2",
+  "steps": [
+    {
+      "tag": "CreateSchema",
+      "schemaName": "public"
+    },
+    {
+      "tag": "CreateTable",
+      "table": "users",
+      "columns": [
+        { "name": "id", "type": "SERIAL", "isPrimaryKey": true },
+        { "name": "email", "type": "VARCHAR(255)", "isRequired": true, "isUnique": true },
+        { "name": "username", "type": "VARCHAR(100)", "isRequired": true, "isUnique": true },
+        { "name": "hashed_password", "type": "VARCHAR(255)", "isRequired": true },
+        { "name": "is_active", "type": "BOOLEAN", "default": true },
+        { "name": "created_at", "type": "TIMESTAMPTZ", "default": "now()" },
+        { "name": "updated_at", "type": "TIMESTAMPTZ", "default": "now()" }
+      ]
+    },
+    {
+      "tag": "CreateTable",
+      "table": "urls",
+      "columns": [
+        { "name": "id", "type": "SERIAL", "isPrimaryKey": true },
+        { "name": "short_code", "type": "VARCHAR(10)", "isRequired": true, "isUnique": true },
+        { "name": "long_url", "type": "TEXT", "isRequired": true },
+        { "name": "custom_alias", "type": "VARCHAR(50)", "isUnique": true },
+        { "name": "user_id", "type": "INTEGER" },
+        { "name": "clicks", "type": "BIGINT", "default": 0 },
+        { "name": "expires_at", "type": "TIMESTAMPTZ" },
+        { "name": "is_active", "type": "BOOLEAN", "default": true },
+        { "name": "created_at", "type": "TIMESTAMPTZ", "default": "now()" },
+        { "name": "updated_at", "type": "TIMESTAMPTZ", "default": "now()" }
+      ],
+      "foreignKeys": [
+        { "columns": ["user_id"], "refTable": "users", "refColumns": ["id"], "onDelete": "CASCADE" }
+      ]
+    },
+    {
+      "tag": "CreateTable",
+      "table": "click_events",
+      "columns": [
+        { "name": "id", "type": "SERIAL", "isPrimaryKey": true },
+        { "name": "url_id", "type": "INTEGER", "isRequired": true },
+        { "name": "timestamp", "type": "TIMESTAMPTZ", "default": "now()" },
+        { "name": "ip_address", "type": "VARCHAR(45)" },
+        { "name": "user_agent", "type": "TEXT" },
+        { "name": "referer", "type": "TEXT" },
+        { "name": "country", "type": "VARCHAR(100)" },
+        { "name": "device", "type": "VARCHAR(50)" }
+      ],
+      "foreignKeys": [
+        { "columns": ["url_id"], "refTable": "urls", "refColumns": ["id"], "onDelete": "CASCADE" }
+      ]
+    }
+  ]
+}

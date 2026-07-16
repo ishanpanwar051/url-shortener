@@ -1,0 +1,5 @@
+# Prisma Migrate lock file
+# Managed by Prisma CLI — do not edit manually
+# Provider: "postgresql"
+
+provider = "postgresql"

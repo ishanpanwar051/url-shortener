@@ -1,0 +1,53 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma-test/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("TEST_DATABASE_URL")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  username       String   @unique
+  hashedPassword String
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  urls URL[]
+}
+
+model URL {
+  id          Int       @id @default(autoincrement())
+  shortCode   String    @unique
+  longUrl     String
+  customAlias String?   @unique
+  userId      Int?
+  clicks      BigInt    @default(0)
+  expiresAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  owner User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  clickEvents ClickEvent[]
+
+  @@index([userId, createdAt])
+}
+
+model ClickEvent {
+  id        Int      @id @default(autoincrement())
+  urlId     Int
+  timestamp DateTime @default(now())
+  ipAddress String?
+  userAgent String?
+  referer   String?
+  country   String?
+  device    String?
+
+  url URL @relation(fields: [urlId], references: [id], onDelete: Cascade)
+}

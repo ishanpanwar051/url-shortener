@@ -1,0 +1,135 @@
+import { Router, Request, Response } from 'express';
+import { urlService } from '../services/url.service';
+import { authMiddleware, optionalAuth } from '../middleware/auth';
+import { rateLimiter } from '../middleware/rateLimiter';
+import QRCode from 'qrcode';
+import { z } from 'zod';
+
+const router = Router();
+
+const createUrlSchema = z.object({
+  longUrl: z.string().url(),
+  customAlias: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+  expiresInDays: z.number().int().min(1).max(3650).optional(),
+});
+
+const updateUrlSchema = z.object({
+  longUrl: z.string().url().optional(),
+  isActive: z.boolean().optional(),
+});
+
+function parsePositiveInt(value: string | undefined, defaultVal: number): number {
+  if (!value) return defaultVal;
+  const n = parseInt(value, 10);
+  return Number.isFinite(n) && n > 0 ? n : defaultVal;
+}
+
+// Create short URL
+router.post('/shorten', rateLimiter, optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const data = createUrlSchema.parse(req.body);
+    const url = await urlService.createShortUrl(
+      data.longUrl,
+      req.user?.userId,
+      data.customAlias,
+      data.expiresInDays
+    );
+    res.status(201).json(url);
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: 'Validation failed', details: err.errors });
+      return;
+    }
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(400).json({ error: message });
+  }
+});
+
+// Get user's URLs
+router.get('/urls', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const page = parsePositiveInt(req.query.page as string, 1);
+    const limit = Math.min(parsePositiveInt(req.query.limit as string, 20), 100);
+    const result = await urlService.getUserUrls(req.user!.userId, page, limit);
+    res.json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(500).json({ error: message });
+  }
+});
+
+// Delete URL
+router.delete('/urls/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parsePositiveInt(req.params.id, 0);
+    if (!id) { res.status(400).json({ error: 'Invalid URL ID' }); return; }
+    await urlService.deleteUrl(id, req.user!.userId);
+    res.status(204).send();
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(404).json({ error: message });
+  }
+});
+
+// Update URL
+router.patch('/urls/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const id = parsePositiveInt(req.params.id, 0);
+    if (!id) { res.status(400).json({ error: 'Invalid URL ID' }); return; }
+    const data = updateUrlSchema.parse(req.body);
+    const url = await urlService.updateUrl(id, req.user!.userId, data);
+    res.json(url);
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      res.status(400).json({ error: 'Validation failed', details: err.errors });
+      return;
+    }
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(404).json({ error: message });
+  }
+});
+
+// Get analytics
+router.get('/analytics/:shortCode', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const shortCode = req.params.shortCode;
+    if (!shortCode || shortCode.length > 10) {
+      res.status(400).json({ error: 'Invalid short code' });
+      return;
+    }
+    const analytics = await urlService.getUrlAnalytics(shortCode, req.user!.userId);
+    if (!analytics) {
+      res.status(404).json({ error: 'URL not found' });
+      return;
+    }
+    res.json(analytics);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    res.status(500).json({ error: message });
+  }
+});
+
+// Generate QR code
+router.get('/qr/:shortCode', optionalAuth, async (req: Request, res: Response) => {
+  try {
+    const shortCode = req.params.shortCode;
+    if (!shortCode || shortCode.length > 10) {
+      res.status(400).json({ error: 'Invalid short code' });
+      return;
+    }
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const shortUrl = `${baseUrl}/${shortCode}`;
+    const qrBuffer = await QRCode.toBuffer(shortUrl, {
+      type: 'png',
+      width: 300,
+      margin: 2,
+    });
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    res.send(qrBuffer);
+  } catch {
+    res.status(404).json({ error: 'Failed to generate QR code' });
+  }
+});
+
+export default router;
