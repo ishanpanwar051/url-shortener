@@ -35,6 +35,8 @@ model URL {
 
   owner User? @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  clickEvents ClickEvent[]
+
   @@index([shortCode])
   @@index([userId])
   @@index([expiresAt])

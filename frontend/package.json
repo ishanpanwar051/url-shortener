@@ -13,6 +13,7 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@types/node": "^18.19.130",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18"
   },
@@ -22,7 +23,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://backend:3000",
+  "proxy": "http://localhost:3000",
   "browserslist": {
     "production": [
       ">0.2%",

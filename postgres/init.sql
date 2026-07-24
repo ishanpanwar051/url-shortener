@@ -1,4 +1,4 @@
-GRANT ALL ON SCHEMA public TO user;
+GRANT ALL ON SCHEMA public TO "user";
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (

@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
+import redis from '../redis';
 
 export interface AuthPayload {
   userId: number;
@@ -21,6 +22,30 @@ export function generateToken(payload: AuthPayload): string {
   return jwt.sign(payload, config.jwtSecret, { expiresIn: config.jwtExpiresIn as any });
 }
 
+const BLACKLIST_PREFIX = 'bl:token:';
+
+export async function blacklistToken(token: string): Promise<void> {
+  try {
+    const decoded = jwt.decode(token) as AuthPayload & { exp?: number };
+    if (!decoded?.exp) return;
+    const ttl = decoded.exp - Math.floor(Date.now() / 1000);
+    if (ttl <= 0) return;
+    await redis.set(`${BLACKLIST_PREFIX}${token}`, '1', 'EX', ttl);
+  } catch {
+    // Best-effort blacklisting
+  }
+}
+
+async function isTokenBlacklisted(token: string): Promise<boolean> {
+  try {
+    const result = await redis.get(`${BLACKLIST_PREFIX}${token}`);
+    return result !== null;
+  } catch {
+    // Redis unavailable — don't block, just log
+    return false;
+  }
+}
+
 function extractToken(req: Request): string | null {
   // 1. Check Authorization header (for API clients)
   const authHeader = req.headers.authorization;
@@ -36,11 +61,16 @@ function extractToken(req: Request): string | null {
   return null;
 }
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
+export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
   const token = extractToken(req);
 
   if (!token) {
     res.status(401).json({ error: 'No token provided' });
+    return;
+  }
+
+  if (await isTokenBlacklisted(token)) {
+    res.status(401).json({ error: 'Token has been revoked' });
     return;
   }
 

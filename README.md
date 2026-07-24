@@ -39,7 +39,7 @@ cd backend
 cp ../.env.example .env
 npm install
 npx prisma generate
-npx prisma migrate deploy
+npx prisma generate
 npm run dev
 
 # Frontend (separate terminal)

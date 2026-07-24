@@ -40,6 +40,7 @@ export function Login({ onLogin }: LoginProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          aria-label="Email"
           style={styles.input}
         />
         <input
@@ -48,6 +49,7 @@ export function Login({ onLogin }: LoginProps) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          aria-label="Password"
           style={styles.input}
         />
         {error && <div style={styles.error}>{error}</div>}

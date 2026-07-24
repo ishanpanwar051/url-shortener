@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: urlshortener
     ports:
-      - "5432:5432"
+      - "5436:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -21,7 +21,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6383:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -35,7 +35,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3010:3000"
     env_file:
       - ./backend/.env
     environment:
@@ -58,7 +58,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "81:80"
     depends_on:
       - backend
     restart: unless-stopped
@@ -66,7 +66,7 @@ services:
   prometheus:
     image: prom/prometheus:v2.53.0
     ports:
-      - "9090:9090"
+      - "9092:9090"
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -81,7 +81,7 @@ services:
   grafana:
     image: grafana/grafana:11.0.0
     ports:
-      - "3001:3000"
+      - "3011:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_INSTALL_PLUGINS: ""

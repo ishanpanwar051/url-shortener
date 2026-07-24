@@ -1,4 +1,5 @@
-export function formatDate(date: string | Date): string {
+export function formatDate(date: string | Date | null | undefined): string {
+  if (!date) return '—';
   return new Date(date).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -6,7 +7,8 @@ export function formatDate(date: string | Date): string {
   });
 }
 
-export function formatDateTime(date: string | Date): string {
+export function formatDateTime(date: string | Date | null | undefined): string {
+  if (!date) return 'Never';
   return new Date(date).toLocaleString('en-US', {
     year: 'numeric',
     month: 'short',

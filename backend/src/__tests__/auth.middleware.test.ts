@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 
+jest.mock('../redis', () => ({
+  __esModule: true,
+  default: { get: jest.fn().mockResolvedValue(null), set: jest.fn(), eval: jest.fn() },
+}));
+
 jest.mock('../config', () => ({
   config: {
     jwtSecret: 'test-secret',
@@ -36,47 +41,47 @@ describe('Auth Middleware', () => {
       mockNext = jest.fn();
     });
 
-    it('should return 401 if no authorization header and no cookie', () => {
+    it('should return 401 if no authorization header and no cookie', async () => {
       mockReq = { headers: {}, cookies: {} };
-      authMiddleware(mockReq, mockRes, mockNext);
+      await authMiddleware(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({ error: 'No token provided' });
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should return 401 if token is invalid', () => {
+    it('should return 401 if token is invalid', async () => {
       mockReq = { headers: { authorization: 'Bearer invalid-token' }, cookies: {} };
-      authMiddleware(mockReq, mockRes, mockNext);
+      await authMiddleware(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({ error: 'Invalid or expired token' });
       expect(mockNext).not.toHaveBeenCalled();
     });
 
-    it('should call next if token is valid in Authorization header', () => {
+    it('should call next if token is valid in Authorization header', async () => {
       const token = generateToken({ userId: 1, email: 'test@example.com', username: 'testuser' });
       mockReq = { headers: { authorization: `Bearer ${token}` }, cookies: {} };
 
-      authMiddleware(mockReq, mockRes, mockNext);
+      await authMiddleware(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeDefined();
       expect(mockReq.user!.userId).toBe(1);
       expect(mockNext).toHaveBeenCalled();
     });
 
-    it('should call next if token is valid in httpOnly cookie', () => {
+    it('should call next if token is valid in httpOnly cookie', async () => {
       const token = generateToken({ userId: 1, email: 'test@example.com', username: 'testuser' });
       mockReq = { headers: {}, cookies: { token } };
 
-      authMiddleware(mockReq, mockRes, mockNext);
+      await authMiddleware(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeDefined();
       expect(mockReq.user!.userId).toBe(1);
       expect(mockNext).toHaveBeenCalled();
     });
 
-    it('should prefer Authorization header over cookie', () => {
+    it('should prefer Authorization header over cookie', async () => {
       const headerToken = generateToken({ userId: 1, email: 'header@example.com', username: 'headeruser' });
       const cookieToken = generateToken({ userId: 2, email: 'cookie@example.com', username: 'cookieuser' });
       mockReq = {
@@ -84,7 +89,7 @@ describe('Auth Middleware', () => {
         cookies: { token: cookieToken },
       };
 
-      authMiddleware(mockReq, mockRes, mockNext);
+      await authMiddleware(mockReq, mockRes, mockNext);
 
       expect(mockReq.user).toBeDefined();
       expect(mockReq.user!.userId).toBe(1);
@@ -92,9 +97,9 @@ describe('Auth Middleware', () => {
       expect(mockNext).toHaveBeenCalled();
     });
 
-    it('should return 401 if cookie token is invalid', () => {
+    it('should return 401 if cookie token is invalid', async () => {
       mockReq = { headers: {}, cookies: { token: 'invalid-token' } };
-      authMiddleware(mockReq, mockRes, mockNext);
+      await authMiddleware(mockReq, mockRes, mockNext);
 
       expect(mockRes.status).toHaveBeenCalledWith(401);
       expect(mockRes.json).toHaveBeenCalledWith({ error: 'Invalid or expired token' });

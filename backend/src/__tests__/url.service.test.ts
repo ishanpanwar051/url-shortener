@@ -39,6 +39,7 @@ const mockRedis = {
   get: jest.fn().mockImplementation(async (key: string) => mockRedisStore.get(key) ?? null),
   set: jest.fn().mockImplementation(async (key: string, value: string) => { mockRedisStore.set(key, value); return 'OK'; }),
   del: jest.fn().mockImplementation(async (key: string) => { mockRedisStore.delete(key); return 1; }),
+  eval: jest.fn().mockResolvedValue(1),
   rpush: jest.fn().mockResolvedValue(1),
   llen: jest.fn().mockResolvedValue(0),
   lrange: jest.fn().mockResolvedValue([]),
@@ -57,6 +58,7 @@ jest.mock('../utils/core', () => ({
   bloomFilterContains: jest.fn().mockReturnValue(true),
   lruCacheGet: jest.fn().mockReturnValue(null),
   lruCachePut: jest.fn(),
+  lruCacheDelete: jest.fn(),
 }));
 
 import { urlService } from '../services/url.service';

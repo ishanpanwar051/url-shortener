@@ -95,6 +95,7 @@ export function Home() {
           value={longUrl}
           onChange={handleLongUrlChange}
           required
+          aria-label="Long URL"
           style={styles.input}
         />
         <input
@@ -102,6 +103,7 @@ export function Home() {
           placeholder="Custom alias (optional)"
           value={customAlias}
           onChange={handleCustomAliasChange}
+          aria-label="Custom alias"
           style={styles.input}
         />
         <button type="submit" disabled={loading} style={styles.button}>

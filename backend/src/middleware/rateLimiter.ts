@@ -49,6 +49,7 @@ async function applyRateLimit(
   res.setHeader('X-RateLimit-Reset', ttl);
 
   if (current > limit) {
+    res.setHeader('Retry-After', ttl);
     res.status(429).json({
       error: 'Too many requests',
       retryAfter: ttl,

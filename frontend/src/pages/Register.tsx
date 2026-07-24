@@ -41,6 +41,7 @@ export function Register({ onLogin }: RegisterProps) {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          aria-label="Email"
           style={styles.input}
         />
         <input
@@ -49,6 +50,7 @@ export function Register({ onLogin }: RegisterProps) {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          aria-label="Username"
           style={styles.input}
         />
         <input
@@ -58,6 +60,7 @@ export function Register({ onLogin }: RegisterProps) {
           onChange={(e) => setPassword(e.target.value)}
           required
           minLength={6}
+          aria-label="Password"
           style={styles.input}
         />
         {error && <div style={styles.error}>{error}</div>}

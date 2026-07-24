@@ -42,7 +42,17 @@ export class AuthService {
   async getProfile(userId: number) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, username: true, createdAt: true, urls: true },
+      select: {
+        id: true,
+        email: true,
+        username: true,
+        createdAt: true,
+        urls: {
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+          select: { id: true, shortCode: true, longUrl: true, clicks: true, isActive: true, createdAt: true },
+        },
+      },
     });
     return user;
   }

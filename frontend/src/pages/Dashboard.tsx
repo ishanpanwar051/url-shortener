@@ -29,7 +29,7 @@ export function Dashboard() {
 
   useEffect(() => {
     fetchUrls();
-  }, [page]);
+  }, [page, navigate]);
 
   const handleDelete = async (id: number) => {
     if (!window.confirm('Delete this URL? This action cannot be undone.')) return;

@@ -4,7 +4,8 @@ import { isIP } from 'net';
 import prisma, { prismaRead } from '../db';
 import redis from '../redis';
 import logger from '../utils/logger';
-import { generateUniqueId, encodeBase62, bloomFilterInsert, bloomFilterContains, lruCacheGet, lruCachePut } from '../utils/core';
+import { generateUniqueId, encodeBase62, bloomFilterInsert, bloomFilterContains, lruCacheGet, lruCachePut, lruCacheDelete } from '../utils/core';
+import { NotFoundError } from '../errors';
 import { config } from '../config';
 import { ClickData } from '../models';
 import {
@@ -31,9 +32,20 @@ const ATOMIC_UNLOCK_SCRIPT = `
   return 0
 `;
 
+// Lua script: atomically move up to N items from source to destination list
+const BATCH_MOVE_SCRIPT = `
+  local items = {}
+  for i = 1, ARGV[1] do
+    local item = redis.call("RPOPLPUSH", KEYS[1], KEYS[2])
+    if not item then break end
+    items[#items + 1] = item
+  end
+  return #items
+`;
+
 export const FRONTEND_ROUTES = new Set([
   'login', 'register', 'dashboard', 'analytics',
-  'api', 'health', 'static',
+  'api', 'health', 'static', 'metrics', 'qr',
 ]);
 
 export class UrlService {
@@ -303,7 +315,7 @@ export class UrlService {
     const device = this.parseDevice(userAgent);
     const click: ClickData = {
       urlId,
-      ipAddress,
+      ipAddress: ipAddress ? this.anonymizeIp(ipAddress) : undefined,
       userAgent,
       referer,
       device,
@@ -319,14 +331,15 @@ export class UrlService {
       // Recover any orphaned events from a previous crash
       await this.recoverProcessingQueue();
 
-      // Atomically pop batch from main queue and push to processing queue
-      // RPOPLPUSH ensures no data loss if this crashes mid-flight
-      const batch: string[] = [];
-      for (let i = 0; i < batchSize; i++) {
-        const item = await redis.rpoplpush(CLICK_QUEUE_KEY, `${CLICK_QUEUE_KEY}:processing`);
-        if (item === null) break;
-        batch.push(item);
-      }
+      // Atomically move batch from main queue to processing queue in one round trip
+      const count = await redis.eval(
+        BATCH_MOVE_SCRIPT, 2, CLICK_QUEUE_KEY, `${CLICK_QUEUE_KEY}:processing`, batchSize.toString()
+      ) as number;
+
+      if (count === 0) return 0;
+
+      // Read the batch from the processing queue
+      const batch = await redis.lrange(`${CLICK_QUEUE_KEY}:processing`, 0, count - 1);
 
       if (batch.length === 0) return 0;
 
@@ -363,7 +376,7 @@ export class UrlService {
       logger.error({ err }, 'Flush failed, returning events to queue');
       try {
         while (true) {
-          const item = await redis.rpoplpush(`${CLICK_QUEUE_KEY}:processing`, CLICK_QUEUE_KEY);
+          const item = await redis.lmove(`${CLICK_QUEUE_KEY}:processing`, CLICK_QUEUE_KEY, 'RIGHT', 'LEFT');
           if (item === null) break;
         }
       } catch (recoveryErr) {
@@ -380,14 +393,13 @@ export class UrlService {
       if (length === 0) return;
 
       logger.info('Recovering %d orphaned click events from processing queue', length);
-      let moved = 0;
-      while (true) {
-        const item = await redis.rpoplpush(processingKey, CLICK_QUEUE_KEY);
-        if (item === null) break;
-        moved++;
-      }
-      if (moved > 0) {
-        logger.info('Recovered %d click events back to main queue', moved);
+
+      // Read all items at once, then atomically trim the source list
+      const items = await redis.lrange(processingKey, 0, length - 1);
+      if (items.length > 0) {
+        await redis.ltrim(processingKey, items.length, -1);
+        await redis.rpush(CLICK_QUEUE_KEY, ...items);
+        logger.info('Recovered %d click events back to main queue', items.length);
       }
     } catch (err) {
       logger.error({ err }, 'Failed to recover processing queue');
@@ -406,6 +418,24 @@ export class UrlService {
     return 'Other';
   }
 
+  private anonymizeIp(ip: string): string {
+    if (ip.includes('.')) {
+      const parts = ip.split('.');
+      if (parts.length === 4) {
+        parts[3] = '0';
+        return parts.join('.');
+      }
+    }
+    if (ip.includes(':')) {
+      const parts = ip.split(':');
+      for (let i = 3; i < parts.length; i++) {
+        parts[i] = '0';
+      }
+      return parts.join(':');
+    }
+    return ip;
+  }
+
   async getUserUrls(userId: number, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
     const [urls, total] = await Promise.all([
@@ -417,7 +447,15 @@ export class UrlService {
       }),
       prismaRead.uRL.count({ where: { userId } }),
     ]);
-    return { urls, total, page, totalPages: Math.ceil(total / limit) };
+    return {
+      urls,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNext: page * limit < total,
+      hasPrev: page > 1,
+    };
   }
 
   async deleteUrl(urlId: number, userId: number) {
@@ -425,12 +463,14 @@ export class UrlService {
     await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const url = await tx.uRL.findFirst({ where: { id: urlId, userId } });
       if (!url) {
-        throw new Error('URL not found or unauthorized');
+        throw new NotFoundError('URL not found or unauthorized');
       }
       shortCode = url.shortCode;
       await tx.uRL.delete({ where: { id: urlId } });
     });
     await redis.del(`${this.CACHE_PREFIX}${shortCode!}`);
+    lruCacheDelete(shortCode!);
+    await redis.set(`${this.NEGATIVE_PREFIX}${shortCode!}`, '1', 'EX', NEGATIVE_CACHE_TTL);
   }
 
   async updateUrl(urlId: number, userId: number, data: { longUrl?: string; isActive?: boolean }) {
@@ -438,7 +478,7 @@ export class UrlService {
     const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const url = await tx.uRL.findFirst({ where: { id: urlId, userId } });
       if (!url) {
-        throw new Error('URL not found or unauthorized');
+        throw new NotFoundError('URL not found or unauthorized');
       }
       shortCode = url.shortCode;
       return tx.uRL.update({
@@ -447,6 +487,7 @@ export class UrlService {
       });
     });
     await redis.del(`${this.CACHE_PREFIX}${shortCode!}`);
+    lruCacheDelete(shortCode!);
     return updated;
   }
 

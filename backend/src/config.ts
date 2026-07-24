@@ -20,6 +20,13 @@ export function validateConfig(): void {
       'Generate a secure key: openssl rand -base64 48'
     );
   }
+
+  if (process.env.NODE_ENV === 'production' && !process.env.CORS_ORIGIN) {
+    throw new Error(
+      'CORS_ORIGIN must be set in production. ' +
+      'Set it to your frontend URL (e.g. https://yourdomain.com)'
+    );
+  }
 }
 
 export const config = {
@@ -36,7 +43,7 @@ export const config = {
   rateLimitPerMinute: parseInt(process.env.RATE_LIMIT_PER_MINUTE || '60', 10),
   shortCodeLength: parseInt(process.env.SHORT_CODE_LENGTH || '7', 10),
   defaultUrlExpiryDays: parseInt(process.env.DEFAULT_URL_EXPIRY_DAYS || '365', 10),
-  corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+  corsOrigin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? '' : '*'),
   isProduction: process.env.NODE_ENV === 'production',
   cookieDomain: process.env.COOKIE_DOMAIN || undefined,
   cookieSecure: process.env.NODE_ENV === 'production',

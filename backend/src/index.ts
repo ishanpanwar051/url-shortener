@@ -1,3 +1,9 @@
+// Fix BigInt serialization — Prisma returns BigInt for `clicks` but
+// JSON.stringify() throws "Do not know how to serialize a BigInt" without this.
+(BigInt.prototype as any).toJSON = function toJSON() {
+  return Number(this);
+};
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -31,10 +37,12 @@ app.use((_req, res, next) => {
 
 app.use(helmet());
 app.set('trust proxy', 1);
-app.use(cors({
+// Cache CORS middleware instance (avoids re-parsing origin on every request)
+const corsMiddleware = cors({
   origin: config.corsOrigin,
   credentials: true,
-}));
+});
+app.use(corsMiddleware);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 
@@ -53,7 +61,7 @@ app.use(metricsMiddleware);
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
-    logger.info({
+    logger.debug({
       requestId: (req as any).requestId,
       method: req.method,
       url: req.originalUrl,
@@ -109,7 +117,7 @@ app.use('/api', urlRoutes);
 app.use('/', redirectRoutes);
 
 // SPA fallback - serve index.html for client-side routing
-app.get(/^\/(?!api\/).*/, (_req, res) => {
+app.get(/^\/(?!api\/|metrics$|health$).*/, (_req, res) => {
   res.sendFile(path.join(frontendBuildPath, 'index.html'));
 });
 

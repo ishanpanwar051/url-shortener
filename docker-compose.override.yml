@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    ports:
+      - "5434:5432"
+
+  redis:
+    ports:
+      - "6380:6379"
+
+  backend:
+    ports:
+      - "3004:3000"
+
+  frontend:
+    ports:
+      - "8080:80"
+
+  prometheus:
+    ports:
+      - "9092:9090"
+
+  grafana:
+    ports:
+      - "3005:3000"
