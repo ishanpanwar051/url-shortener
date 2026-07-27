@@ -20,6 +20,9 @@ ALTER TABLE "urls" DROP CONSTRAINT "urls_user_id_fkey";
 -- DropIndex
 DROP INDEX "idx_urls_expires_active";
 
+-- Recreate index dropped above
+CREATE INDEX IF NOT EXISTS "idx_urls_expires_active" ON "urls"("expires_at", "is_active");
+
 -- AlterTable
 ALTER TABLE "click_events" ALTER COLUMN "timestamp" SET NOT NULL,
 ALTER COLUMN "timestamp" SET DATA TYPE TIMESTAMP(3);

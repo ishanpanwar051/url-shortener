@@ -9,7 +9,7 @@ export class AuthService {
       const user = await prisma.user.create({
         data: { email, username, hashedPassword },
       });
-      const token = generateToken({ userId: user.id });
+      const token = generateToken({ userId: user.id, email: user.email, username: user.username });
       return { token, user: { id: user.id, email: user.email, username: user.username } };
     } catch (err: unknown) {
       if (
@@ -35,7 +35,7 @@ export class AuthService {
       throw new Error('Invalid credentials');
     }
 
-    const token = generateToken({ userId: user.id });
+    const token = generateToken({ userId: user.id, email: user.email, username: user.username });
     return { token, user: { id: user.id, email: user.email, username: user.username } };
   }
 

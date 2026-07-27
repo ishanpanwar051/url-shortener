@@ -5,16 +5,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-# Find Node.js and N-API
+# Find Node.js headers
 find_program(NODE_EXECUTABLE node)
 if(NODE_EXECUTABLE)
-    execute_process(COMMAND ${NODE_EXECUTABLE} -e "console.log(require('node-addon-api').include)"
-        OUTPUT_VARIABLE NAPI_INCLUDE_DIR
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        ERROR_QUIET)
-    execute_process(COMMAND ${NODE_EXECUTABLE} -e "console.log(process.versions.node)"
-        OUTPUT_VARIABLE NODE_VERSION
-        OUTPUT_STRIP_TRAILING_WHITESPACE)
     execute_process(COMMAND ${NODE_EXECUTABLE} -e "
         const p = require('path');
         console.log(p.dirname(process.execPath) + '/../include/node');
@@ -22,6 +15,22 @@ if(NODE_EXECUTABLE)
         OUTPUT_VARIABLE NODE_HEADERS_DIR
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 endif()
+
+# Find node-addon-api headers
+set(NAPI_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/../node_modules/node-addon-api")
+if(NOT EXISTS "${NAPI_INCLUDE_DIR}/napi.h")
+    # Fallback: try to find via node
+    execute_process(COMMAND ${NODE_EXECUTABLE} -e "console.log(require('node-addon-api').include)"
+        OUTPUT_VARIABLE NAPI_INCLUDE_DIR_TMP
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET)
+    if(NAPI_INCLUDE_DIR_TMP)
+        set(NAPI_INCLUDE_DIR "${NAPI_INCLUDE_DIR_TMP}")
+    endif()
+endif()
+
+message(STATUS "Node headers: ${NODE_HEADERS_DIR}")
+message(STATUS "N-API include: ${NAPI_INCLUDE_DIR}")
 
 file(GLOB SOURCES "src/*.cpp")
 
@@ -33,17 +42,10 @@ target_include_directories(url_shortener_core PRIVATE
     ${NAPI_INCLUDE_DIR}
 )
 
-if(WIN32)
-    set_target_properties(url_shortener_core PROPERTIES
-        SUFFIX ".node"
-        PREFIX ""
-    )
-else()
-    set_target_properties(url_shortener_core PROPERTIES
-        SUFFIX ".node"
-        PREFIX ""
-    )
-endif()
+set_target_properties(url_shortener_core PROPERTIES
+    SUFFIX ".node"
+    PREFIX ""
+)
 
 install(TARGETS url_shortener_core
     LIBRARY DESTINATION lib

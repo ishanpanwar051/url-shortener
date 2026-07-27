@@ -31,24 +31,24 @@ async function applyRateLimit(
   prefix: string,
   limit: number,
 ): Promise<void> {
-  const key = `${prefix}:${req.ip}`;
+  const key = `${prefix}:${req.path}:${req.ip}`;
 
-  let result: [number, number];
+  let raw: any;
   try {
-    result = await redis.eval(RATE_LIMIT_SCRIPT, 1, key, WINDOW_SECONDS.toString()) as [number, number];
+    raw = await redis.eval(RATE_LIMIT_SCRIPT, 1, key, WINDOW_SECONDS.toString());
   } catch {
-    // Redis unavailable — allow the request to avoid breaking the site
     next();
     return;
   }
 
-  const [current, ttl] = result;
+  const current = Number(raw[0]);
+  const ttl = Number(raw[1]);
 
   res.setHeader('X-RateLimit-Limit', limit);
   res.setHeader('X-RateLimit-Remaining', Math.max(0, limit - current));
-  res.setHeader('X-RateLimit-Reset', ttl);
+  res.setHeader('X-RateLimit-Reset', Math.ceil(Date.now() / 1000) + ttl);
 
-  if (current > limit) {
+  if (current >= limit) {
     res.setHeader('Retry-After', ttl);
     res.status(429).json({
       error: 'Too many requests',

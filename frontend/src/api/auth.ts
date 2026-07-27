@@ -25,9 +25,12 @@ export async function logout() {
   return data;
 }
 
-export async function getCurrentUser() {
-  const { data } = await api.get<{ user: User }>('/auth/me');
-  return data.user;
+export async function getCurrentUser(): Promise<User> {
+  const { data } = await api.get<{ user: User } | User>('/auth/me');
+  if ('user' in data && data.user) {
+    return data.user;
+  }
+  return { id: (data as User).id, email: (data as User).email, username: (data as User).username };
 }
 
 export async function getProfile() {

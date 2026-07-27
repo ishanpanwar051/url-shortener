@@ -1,14 +1,14 @@
 // Fix BigInt serialization — Prisma returns BigInt for `clicks` but
 // JSON.stringify() throws "Do not know how to serialize a BigInt" without this.
 (BigInt.prototype as any).toJSON = function toJSON() {
-  return Number(this);
+  return this.toString();
 };
 
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import path from 'path';
+import csrf from 'csurf';
 import { v4 as uuidv4 } from 'uuid';
 import { config, validateConfig } from './config';
 import prisma from './db';
@@ -45,6 +45,8 @@ const corsMiddleware = cors({
 app.use(corsMiddleware);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
+const csrfProtection = csrf({ cookie: true });
+app.use(csrfProtection);
 
 // Request ID middleware — attaches unique ID to every request
 app.use((req, res, next) => {
@@ -72,12 +74,8 @@ app.use((req, res, next) => {
   next();
 });
 
-// Metrics endpoint — Prometheus scrapes this
+// Metrics endpoint — Prometheus scrapes this (internal Docker network, no auth required)
 app.get('/metrics', metricsEndpoint);
-
-// Serve frontend static files
-const frontendBuildPath = path.join(__dirname, '../../frontend/build');
-app.use(express.static(frontendBuildPath));
 
 // Health check — verifies dependencies and returns 503 during shutdown
 app.get('/health', async (_req, res) => {
@@ -111,17 +109,25 @@ app.get('/health', async (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString(), checks });
 });
 
+// CSRF token endpoint
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', urlRoutes);
 app.use('/', redirectRoutes);
 
-// SPA fallback - serve index.html for client-side routing
-app.get(/^\/(?!api\/|metrics$|health$).*/, (_req, res) => {
-  res.sendFile(path.join(frontendBuildPath, 'index.html'));
+// Global error handler — prevents stack trace leaks
+app.use((err: Error & { code?: string }, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err.code === 'EBADCSRFTOKEN') {
+    res.status(403).json({ error: 'Invalid or missing CSRF token' });
+    return;
+  }
+  next(err);
 });
 
-// Global error handler — prevents stack trace leaks
 app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
   logger.error({ err, requestId: (req as any).requestId }, 'Unhandled error');
   errorTotal.inc({ type: 'unhandled' });
@@ -201,6 +207,11 @@ const server = app.listen(config.port, () => {
   logger.info('URL Shortener API running on port %d', config.port);
 });
 
+// Hydrate bloom filter from existing DB records before serving redirects
+urlService.hydrateBloomFilter().catch((err) => {
+  logger.error({ err }, 'Failed to hydrate bloom filter — redirects may be unreliable until restart');
+});
+
 const GRACEFUL_SHUTDOWN_TIMEOUT = 10_000;
 
 async function shutdown(signal: string): Promise<void> {
@@ -252,7 +263,7 @@ process.on('unhandledRejection', (reason) => {
 
 process.on('uncaughtException', (err) => {
   logger.error({ err }, 'Uncaught exception');
-  shutdown('UNCAUGHT');
+  process.exit(1);
 });
 
 export default app;

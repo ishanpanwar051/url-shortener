@@ -3,14 +3,26 @@ import { urlService } from '../services/url.service';
 import { authMiddleware, optionalAuth } from '../middleware/auth';
 import { rateLimiter } from '../middleware/rateLimiter';
 import { NotFoundError } from '../errors';
+import logger from '../utils/logger';
 import QRCode from 'qrcode';
 import { z } from 'zod';
+import { config } from '../config';
 
 const router = Router();
+
+function getPublicBaseUrl(req: Request): string {
+  if (config.publicBaseUrl) {
+    return config.publicBaseUrl.replace(/\/$/, '');
+  }
+  const proto = (req.get('x-forwarded-proto') || req.protocol || 'http').split(',')[0].trim();
+  const host = (req.get('x-forwarded-host') || req.get('host') || 'localhost').split(',')[0].trim();
+  return `${proto}://${host}`;
+}
 
 const createUrlSchema = z.object({
   longUrl: z.string().url(),
   customAlias: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/).optional(),
+  customAliasDb: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/).optional(),
   expiresInDays: z.number().int().min(1).max(3650).optional(),
 });
 
@@ -56,8 +68,8 @@ router.get('/urls', authMiddleware, async (req: Request, res: Response) => {
     const result = await urlService.getUserUrls(req.user!.userId, page, limit);
     res.json(result);
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Internal server error';
-    res.status(500).json({ error: message });
+    logger.error({ err }, 'Failed to fetch user URLs');
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
@@ -121,7 +133,7 @@ router.get('/analytics/:shortCode', authMiddleware, async (req: Request, res: Re
 router.get('/qr/:shortCode', rateLimiter, optionalAuth, async (req: Request, res: Response) => {
   try {
     const shortCode = shortCodeParamSchema.parse(req.params.shortCode);
-    const baseUrl = `${req.protocol}://${req.get('host')}`;
+    const baseUrl = getPublicBaseUrl(req);
     const shortUrl = `${baseUrl}/${shortCode}`;
     const qrBuffer = await QRCode.toBuffer(shortUrl, {
       type: 'png',

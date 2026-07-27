@@ -8,8 +8,43 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// No localStorage token management.
-// Auth is handled via httpOnly cookies (automatic with withCredentials).
-// For API clients, tokens can be set via Authorization header manually.
+let csrfToken: string | null = null;
+
+async function fetchCsrfToken(): Promise<string> {
+  const res = await axios.get('/api/csrf-token', { withCredentials: true });
+  csrfToken = res.data.csrfToken;
+  return csrfToken!;
+}
+
+api.interceptors.request.use(async (config) => {
+  const method = config.method?.toLowerCase() ?? '';
+  if (['post', 'put', 'patch', 'delete'].includes(method)) {
+    if (!csrfToken) {
+      await fetchCsrfToken();
+    }
+    config.headers['X-CSRF-Token'] = csrfToken;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+    if (
+      error.response?.status === 403 &&
+      error.response?.data?.error?.includes?.('CSRF') &&
+      original &&
+      !original._csrfRetry
+    ) {
+      original._csrfRetry = true;
+      csrfToken = null;
+      await fetchCsrfToken();
+      original.headers['X-CSRF-Token'] = csrfToken;
+      return api(original);
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

@@ -1,16 +1,17 @@
 {
   "name": "url-shortener",
+  "private": true,
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cd backend && npm test",
+    "build": "cd backend && npm run build",
+    "dev": "cd backend && npm run dev"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
+  "devDependencies": {
     "@playwright/test": "^1.61.1",
     "playwright": "^1.61.1"
   }

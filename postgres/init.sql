@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- URLs table
 CREATE TABLE IF NOT EXISTS urls (
     id SERIAL PRIMARY KEY,
-    short_code VARCHAR(10) UNIQUE NOT NULL,
+    short_code VARCHAR(50) UNIQUE NOT NULL,
     long_url TEXT NOT NULL,
     custom_alias VARCHAR(50) UNIQUE,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,

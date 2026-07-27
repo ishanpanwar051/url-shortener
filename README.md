@@ -45,7 +45,7 @@ npm run dev
 # Frontend (separate terminal)
 cd frontend
 npm install
-npm start
+npm startherm
 ```
 
 ### Testing
@@ -57,8 +57,7 @@ cd backend && npm test
 # E2E tests (requires backend running on port 3456 with USE_TEST_DB=true)
 ./run-tests.bat  # Windows
 ./run-tests.sh   # Unix
-```
-
+``
 ### Deployment
 
 ```bash

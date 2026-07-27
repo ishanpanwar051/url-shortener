@@ -27,6 +27,14 @@ export function validateConfig(): void {
       'Set it to your frontend URL (e.g. https://yourdomain.com)'
     );
   }
+
+  const origin = process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? '' : '*');
+  if (process.env.NODE_ENV === 'production' && origin === '*') {
+    throw new Error(
+      'CORS origin cannot be wildcard (*) in production when credentials are enabled. ' +
+      'Set CORS_ORIGIN to your frontend URL.'
+    );
+  }
 }
 
 export const config = {
@@ -44,6 +52,7 @@ export const config = {
   shortCodeLength: parseInt(process.env.SHORT_CODE_LENGTH || '7', 10),
   defaultUrlExpiryDays: parseInt(process.env.DEFAULT_URL_EXPIRY_DAYS || '365', 10),
   corsOrigin: process.env.CORS_ORIGIN || (process.env.NODE_ENV === 'production' ? '' : '*'),
+  publicBaseUrl: process.env.PUBLIC_BASE_URL || '',
   isProduction: process.env.NODE_ENV === 'production',
   cookieDomain: process.env.COOKIE_DOMAIN || undefined,
   cookieSecure: process.env.NODE_ENV === 'production',

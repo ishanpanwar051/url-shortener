@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstring>
 #include <functional>
+#include <string>
 
 namespace urlshortener {
 
@@ -12,7 +13,7 @@ BloomFilter::BloomFilter(size_t expectedItems, double falsePositiveRate) {
 }
 
 size_t BloomFilter::optimalBitCount(size_t n, double p) {
-    return static_cast<size_t>(-n * std::log(p) / (std::log(2.0) * std::log(2.0)));
+    return static_cast<size_t>(-static_cast<double>(n) * std::log(p) / (std::log(2.0) * std::log(2.0)));
 }
 
 size_t BloomFilter::optimalHashCount(size_t n, size_t m) {

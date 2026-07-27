@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken';
 
 const mockPrisma = {
   user: {
-    findFirst: jest.fn(),
     findUnique: jest.fn(),
     create: jest.fn(),
   },
@@ -31,7 +30,6 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should register a new user successfully', async () => {
-      mockPrisma.user.findFirst.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue({
         id: 1,
         email: 'test@example.com',

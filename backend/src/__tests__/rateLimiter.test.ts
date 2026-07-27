@@ -15,9 +15,9 @@ jest.mock('../config', () => ({
 
 import { rateLimiter, authRateLimiter } from '../middleware/rateLimiter';
 
-function createMocks() {
+function createMocks(path = '/test') {
   return {
-    req: { ip: '127.0.0.1' } as any,
+    req: { ip: '127.0.0.1', path } as any,
     res: {
       setHeader: jest.fn(),
       status: jest.fn().mockReturnThis(),
@@ -42,7 +42,7 @@ describe('rateLimiter', () => {
     expect(mockRedis.eval).toHaveBeenCalledWith(
       expect.stringContaining('INCR'),
       1,
-      'ratelimit:127.0.0.1',
+       'ratelimit:/test:127.0.0.1',
       '60',
     );
     expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', 4);
@@ -97,10 +97,21 @@ describe('authRateLimiter', () => {
     expect(mockRedis.eval).toHaveBeenCalledWith(
       expect.stringContaining('INCR'),
       1,
-      'authlimit:127.0.0.1',
+       'authlimit:/test:127.0.0.1',
       '60',
     );
     expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 10);
+    expect(next).toHaveBeenCalled();
+  });
+
+  it('should allow exactly 10 requests (the auth limit)', async () => {
+    const { req, res, next } = createMocks();
+    mockRedis.eval.mockResolvedValue([10, 30]);
+
+    await authRateLimiter(req, res, next);
+
+    expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 10);
+    expect(res.setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', 0);
     expect(next).toHaveBeenCalled();
   });
 

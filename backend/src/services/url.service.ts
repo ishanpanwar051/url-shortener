@@ -4,7 +4,7 @@ import { isIP } from 'net';
 import prisma, { prismaRead } from '../db';
 import redis from '../redis';
 import logger from '../utils/logger';
-import { generateUniqueId, encodeBase62, bloomFilterInsert, bloomFilterContains, lruCacheGet, lruCachePut, lruCacheDelete } from '../utils/core';
+import { generateUniqueId, encodeBase62, bloomFilterInit, bloomFilterInsert, bloomFilterContains, lruCacheGet, lruCachePut, lruCacheDelete } from '../utils/core';
 import { NotFoundError } from '../errors';
 import { config } from '../config';
 import { ClickData } from '../models';
@@ -23,6 +23,11 @@ const CACHE_STAMPEDE_LOCK_TTL = 5;
 const CACHE_STAMPEDE_RETRY_MS = 50;
 const CACHE_STAMPEDE_MAX_RETRIES = 5;
 const CLICK_QUEUE_KEY = 'click_queue';
+
+interface CachedUrlEntry {
+  longUrl: string;
+  urlId: number;
+}
 
 // Lua script: atomically delete key only if value matches
 const ATOMIC_UNLOCK_SCRIPT = `
@@ -52,6 +57,18 @@ export class UrlService {
   private readonly CACHE_PREFIX = 'url:';
   private readonly NEGATIVE_PREFIX = 'neg:';
   private readonly COUNTER_PREFIX = 'clicks:';
+  private bloomFilterReady = false;
+
+  /** Load all existing short codes into the bloom filter on startup. */
+  async hydrateBloomFilter(): Promise<void> {
+    bloomFilterInit();
+    const codes = await prismaRead.uRL.findMany({ select: { shortCode: true } });
+    for (const { shortCode } of codes) {
+      bloomFilterInsert(shortCode);
+    }
+    this.bloomFilterReady = true;
+    logger.info('Bloom filter hydrated with %d short codes', codes.length);
+  }
 
   // Convert an IPv4 address string to a 32-bit integer for range checking
   private ip4ToInt(ip: string): number {
@@ -124,9 +141,8 @@ export class UrlService {
     try {
       addresses = await dns.lookup(hostname, { all: true });
     } catch {
-      // DNS resolution failure — this is suspicious, but let the URL through
-      // (the error might be transient; users can retry)
-      return;
+      // DNS resolution failure — reject to prevent SSRF via DNS rebinding
+      throw new Error('URLs pointing to internal or private networks are not allowed');
     }
 
     for (const addr of addresses) {
@@ -160,12 +176,35 @@ export class UrlService {
 
     bloomFilterInsert(url.shortCode);
 
-    // Cache the URL
-    await redis.set(`${this.CACHE_PREFIX}${url.shortCode}`, url.longUrl, 'EX', 3600);
-    lruCachePut(url.shortCode, url.longUrl);
+    await this.cacheUrl(url.shortCode, url.longUrl, url.id);
 
     urlCreatedTotal.inc();
     return url;
+  }
+
+  private serializeCacheEntry(longUrl: string, urlId: number): string {
+    return JSON.stringify({ longUrl, urlId });
+  }
+
+  private parseCacheEntry(raw: string): CachedUrlEntry | null {
+    try {
+      const parsed = JSON.parse(raw) as CachedUrlEntry;
+      if (parsed.longUrl && typeof parsed.urlId === 'number') {
+        return parsed;
+      }
+    } catch {
+      // Legacy cache stored plain longUrl strings
+      if (raw.startsWith('http://') || raw.startsWith('https://')) {
+        return { longUrl: raw, urlId: 0 };
+      }
+    }
+    return null;
+  }
+
+  private async cacheUrl(shortCode: string, longUrl: string, urlId: number): Promise<void> {
+    const payload = this.serializeCacheEntry(longUrl, urlId);
+    await redis.set(`${this.CACHE_PREFIX}${shortCode}`, payload, 'EX', CACHE_TTL);
+    lruCachePut(shortCode, payload);
   }
 
   private generateCandidateCode(): string {
@@ -219,17 +258,27 @@ export class UrlService {
   }
 
   async getLongUrl(shortCode: string, ipAddress?: string, userAgent?: string, referer?: string) {
+    const recordClick = (urlId: number) => {
+      if (urlId > 0) {
+        this.bufferClick(urlId, ipAddress, userAgent, referer);
+      }
+    };
+
     // Check LRU cache first (fastest — in-process memory)
     const lruResult = lruCacheGet(shortCode);
     if (lruResult) {
-      cacheHitTotal.inc({ layer: 'lru' });
-      redirectTotal.inc({ cached: 'true', status: '302' });
-      return { longUrl: lruResult, cached: true };
+      const entry = this.parseCacheEntry(lruResult);
+      if (entry) {
+        cacheHitTotal.inc({ layer: 'lru' });
+        recordClick(entry.urlId);
+        redirectTotal.inc({ cached: 'true', status: '302' });
+        return { longUrl: entry.longUrl, cached: true };
+      }
     }
     cacheMissTotal.inc({ layer: 'lru' });
 
     // Bloom filter: fast rejection if the short code definitely doesn't exist
-    if (!bloomFilterContains(shortCode)) {
+    if (this.bloomFilterReady && !bloomFilterContains(shortCode)) {
       redirectTotal.inc({ cached: 'false', status: '404' });
       return null;
     }
@@ -245,10 +294,14 @@ export class UrlService {
     // Check Redis cache
     const cached = await redis.get(`${this.CACHE_PREFIX}${shortCode}`);
     if (cached) {
-      cacheHitTotal.inc({ layer: 'redis' });
-      lruCachePut(shortCode, cached);
-      redirectTotal.inc({ cached: 'true', status: '302' });
-      return { longUrl: cached, cached: true };
+      const entry = this.parseCacheEntry(cached);
+      if (entry) {
+        cacheHitTotal.inc({ layer: 'redis' });
+        lruCachePut(shortCode, cached);
+        recordClick(entry.urlId);
+        redirectTotal.inc({ cached: 'true', status: '302' });
+        return { longUrl: entry.longUrl, cached: true };
+      }
     }
     cacheMissTotal.inc({ layer: 'redis' });
 
@@ -258,10 +311,14 @@ export class UrlService {
       // Check if another request populated the cache while we waited
       const retryCache = await redis.get(`${this.CACHE_PREFIX}${shortCode}`);
       if (retryCache) {
-        cacheHitTotal.inc({ layer: 'redis_retry' });
-        lruCachePut(shortCode, retryCache);
-        redirectTotal.inc({ cached: 'true', status: '302' });
-        return { longUrl: retryCache, cached: true };
+        const entry = this.parseCacheEntry(retryCache);
+        if (entry) {
+          cacheHitTotal.inc({ layer: 'redis_retry' });
+          lruCachePut(shortCode, retryCache);
+          recordClick(entry.urlId);
+          redirectTotal.inc({ cached: 'true', status: '302' });
+          return { longUrl: entry.longUrl, cached: true };
+        }
       }
       // Truly not found — cache negative result to prevent repeated lookups
       await redis.set(negKey, '1', 'EX', NEGATIVE_CACHE_TTL);
@@ -279,11 +336,9 @@ export class UrlService {
     }
 
     // Cache for future
-    await redis.set(`${this.CACHE_PREFIX}${shortCode}`, url.longUrl, 'EX', CACHE_TTL);
-    lruCachePut(shortCode, url.longUrl);
+    await this.cacheUrl(shortCode, url.longUrl, url.id);
 
-    // Buffer click event asynchronously
-    this.bufferClick(url.id, ipAddress, userAgent, referer);
+    recordClick(url.id);
 
     cacheMissTotal.inc({ layer: 'db' });
     redirectTotal.inc({ cached: 'false', status: '302' });
@@ -474,6 +529,9 @@ export class UrlService {
   }
 
   async updateUrl(urlId: number, userId: number, data: { longUrl?: string; isActive?: boolean }) {
+    if (data.longUrl) {
+      await this.validateUrl(data.longUrl);
+    }
     let shortCode: string;
     const updated = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const url = await tx.uRL.findFirst({ where: { id: urlId, userId } });

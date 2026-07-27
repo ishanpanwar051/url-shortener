@@ -5,7 +5,7 @@ import logger from './logger';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 let native: any = null;
 try {
-  native = require('../../core/build/Release/url_shortener_core');
+  native = require('../../core/build/url_shortener_core');
 } catch {
   logger.warn('C++ native module not found, using JS fallback');
 }
@@ -191,9 +191,8 @@ let snowflakeSeq = 0;
 let snowflakeLastTs = 0;
 
 export function generateUniqueId(machineId: number = config.machineId): number {
-  if (native?.generateUniqueId) {
-    return native.generateUniqueId(machineId);
-  }
+  // Always use JS implementation — C++ snowflake IDs exceed Number.MAX_SAFE_INTEGER
+  // and lose precision when passed through N-API as JavaScript numbers.
   let ts = Date.now() - SNOWFLAKE_EPOCH;
   if (ts < snowflakeLastTs) ts = snowflakeLastTs;
   if (ts === snowflakeLastTs) {

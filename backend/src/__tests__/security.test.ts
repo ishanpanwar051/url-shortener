@@ -305,15 +305,13 @@ describe('SECURITY: Input Validation', () => {
 });
 
 describe('SECURITY: SSRF Protection (URL Validation)', () => {
-  it('URL service validates URLs before creation', () => {
+  it('URL service validates URLs before creation', async () => {
     const { UrlService } = require('../services/url.service');
     const service = new UrlService();
 
-    // We can't call validateUrl directly (private), but we can test the public method
-    // with invalid URLs that should fail
-    expect(service.createShortUrl('not-a-url')).rejects.toThrow();
-    expect(service.createShortUrl('ftp://example.com')).rejects.toThrow();
-    expect(service.createShortUrl('javascript:alert(1)')).rejects.toThrow();
+    await expect(service.createShortUrl('not-a-url')).rejects.toThrow();
+    await expect(service.createShortUrl('ftp://example.com')).rejects.toThrow();
+    await expect(service.createShortUrl('javascript:alert(1)')).rejects.toThrow();
   });
 });
 
@@ -397,30 +395,22 @@ describe('SECURITY: Route-Level Protection', () => {
 });
 
 describe('SECURITY: Error Handling', () => {
-  it('error messages do not leak internal details', () => {
+  it('error messages do not leak internal details', async () => {
     const { authService } = require('../services/auth.service');
 
     // Invalid credentials should return generic message, not "user not found"
     mockPrismaUser.findUnique.mockResolvedValue(null);
 
-    authService.login('nonexistent@example.com', 'password').catch((err: Error) => {
-      expect(err.message).toBe('Invalid credentials');
-      expect(err.message).not.toContain('nonexistent@example.com');
-      expect(err.message).not.toContain('SELECT');
-    });
+    await expect(authService.login('nonexistent@example.com', 'password')).rejects.toThrow('Invalid credentials');
   });
 
-  it('duplicate user errors are generic', () => {
+  it('duplicate user errors are generic', async () => {
     const { authService } = require('../services/auth.service');
 
     const p2002Error = new Error('Unique constraint failed');
     Object.assign(p2002Error, { code: 'P2002', meta: { target: ['email'] } });
     mockPrismaUser.create.mockRejectedValue(p2002Error);
 
-    authService.register('test@example.com', 'user', 'password').catch((err: Error) => {
-      expect(err.message).toBe('Email or username already taken');
-      expect(err.message).not.toContain('email');
-      expect(err.message).not.toContain('INSERT');
-    });
+    await expect(authService.register('test@example.com', 'user', 'password')).rejects.toThrow('Email or username already taken');
   });
 });

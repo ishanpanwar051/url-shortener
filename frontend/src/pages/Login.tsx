@@ -24,7 +24,12 @@ export function Login({ onLogin }: LoginProps) {
       navigate('/dashboard');
     } catch (err: any) {
       const errData = err.response?.data;
-      setError(errData?.error || 'Login failed');
+      if (errData?.details && Array.isArray(errData.details)) {
+        const messages = errData.details.map((d: any) => d.message).join('. ');
+        setError(messages || errData?.error || 'Login failed');
+      } else {
+        setError(errData?.error || 'Login failed');
+      }
     } finally {
       setLoading(false);
     }

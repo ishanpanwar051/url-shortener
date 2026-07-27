@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { authService } from '../services/auth.service';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, extractToken } from '../middleware/auth';
+import logger from '../utils/logger';
 import { authRateLimiter } from '../middleware/rateLimiter';
 import { cookieConfig } from '../config';
 import { blacklistToken } from '../middleware/auth';
@@ -45,7 +46,9 @@ router.post('/register', authRateLimiter, async (req: Request, res: Response) =>
       res.status(400).json({ error: 'Validation failed', details: err.errors });
       return;
     }
-    res.status(400).json({ error: err.message });
+    const message = err instanceof Error ? err.message : 'Registration failed';
+    logger.error({ err }, 'Registration failed');
+    res.status(400).json({ error: message });
   }
 });
 
@@ -62,12 +65,13 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response) => {
       res.status(400).json({ error: 'Validation failed', details: err.errors });
       return;
     }
-    res.status(401).json({ error: err.message });
+    logger.error({ err }, 'Login failed');
+    res.status(401).json({ error: 'Invalid email or password' });
   }
 });
 
-router.post('/logout', async (req: Request, res: Response) => {
-  const token = req.cookies?.token || req.headers.authorization?.split(' ')[1];
+router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
+  const token = extractToken(req);
   if (token) {
     await blacklistToken(token);
   }
@@ -80,17 +84,25 @@ router.get('/profile', authMiddleware, async (req: Request, res: Response) => {
     const profile = await authService.getProfile(req.user!.userId);
     res.json(profile);
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    logger.error({ err }, 'Failed to fetch profile');
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-// Alias for /profile — kept for backward compatibility
+// Session check — returns user info for SPA auth restore on page refresh
 router.get('/me', authMiddleware, async (req: Request, res: Response) => {
   try {
     const profile = await authService.getProfile(req.user!.userId);
-    res.json(profile);
-  } catch {
-    res.status(401).json({ error: 'Not authenticated' });
+    if (!profile) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    res.json({
+      user: { id: profile.id, email: profile.email, username: profile.username },
+    });
+  } catch (err) {
+    logger.error({ err, userId: req.user?.userId }, 'Failed to fetch profile');
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

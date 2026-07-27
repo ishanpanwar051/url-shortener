@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -23,7 +24,7 @@ model User {
 
 model URL {
   id         Int      @id @default(autoincrement())
-  shortCode  String   @unique @map("short_code") @db.VarChar(10)
+  shortCode  String   @unique @map("short_code") @db.VarChar(50)
   longUrl    String   @map("long_url") @db.Text
   customAlias String? @unique @map("custom_alias") @db.VarChar(50)
   userId     Int?     @map("user_id")

@@ -1,4 +1,5 @@
 #include "consistent_hash.h"
+#include <algorithm>
 #include <sstream>
 
 namespace urlshortener {

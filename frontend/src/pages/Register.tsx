@@ -25,7 +25,12 @@ export function Register({ onLogin }: RegisterProps) {
       navigate('/dashboard');
     } catch (err: any) {
       const errData = err.response?.data;
-      setError(errData?.error || 'Registration failed');
+      if (errData?.details && Array.isArray(errData.details)) {
+        const messages = errData.details.map((d: any) => d.message).join('. ');
+        setError(messages || errData?.error || 'Registration failed');
+      } else {
+        setError(errData?.error || 'Registration failed');
+      }
     } finally {
       setLoading(false);
     }
@@ -59,10 +64,11 @@ export function Register({ onLogin }: RegisterProps) {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          minLength={6}
+          minLength={8}
           aria-label="Password"
           style={styles.input}
         />
+        <p style={styles.hint}>Min 8 chars: uppercase, lowercase, and number required</p>
         {error && <div style={styles.error}>{error}</div>}
         <button type="submit" disabled={loading} style={styles.button}>{loading ? 'Registering...' : 'Register'}</button>
         <p style={styles.text}>
@@ -125,5 +131,10 @@ const styles: Record<string, React.CSSProperties> = {
   },
   link: {
     color: '#e94560',
+  },
+  hint: {
+    margin: '-8px 0 0 0',
+    fontSize: '0.8rem',
+    color: '#888',
   },
 };

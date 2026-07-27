@@ -3,14 +3,20 @@ import { config } from './config';
 import logger from './utils/logger';
 
 const redis = new Redis(config.redisUrl, {
-  retryStrategy: (times) => Math.min(times * 50, 2000),
-  maxRetriesPerRequest: 3,
+  retryStrategy: (times) => Math.min(Math.pow(times, 2) * 100, 5000),
+  maxRetriesPerRequest: 10,
+  enableOfflineQueue: true,
   lazyConnect: true,
-  enableOfflineQueue: false,
+  connectTimeout: 10000,
+  enableReadyCheck: true,
 });
 
 redis.on('error', (err) => {
   logger.error({ err }, 'Redis connection error');
+});
+
+redis.on('reconnect', () => {
+  logger.info('Redis reconnecting');
 });
 
 export default redis;

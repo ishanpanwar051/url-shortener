@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { urlService, FRONTEND_ROUTES } from '../services/url.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.use('/:shortCode', (req, res, next) => {
 router.get('/:shortCode', async (req: Request, res: Response) => {
   try {
     const { shortCode } = req.params;
-    if (!shortCode || shortCode.length > 10) {
+    if (!shortCode || shortCode.length > 50) {
       res.status(404).send(notFoundHtml);
       return;
     }
@@ -33,7 +34,8 @@ router.get('/:shortCode', async (req: Request, res: Response) => {
     }
 
     res.redirect(302, result.longUrl);
-  } catch {
+  } catch (err) {
+    logger.error({ err, shortCode: req.params.shortCode }, 'Redirect failed');
     res.status(500).json({ error: 'Internal server error' });
   }
 });
