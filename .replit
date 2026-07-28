@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "bash"]
+modules = ["nodejs-20", "bash", "postgresql-16"]
 
 [nix]
 channel = "stable-25_05"
@@ -22,14 +22,21 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "cd frontend && npm install --legacy-peer-deps && npm start"
-waitForPort = 3000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash start.sh"
+waitForPort = 3000
 
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+CORS_ORIGIN = "*"
+NODE_ENV = "development"
+REDIS_URL = "redis://localhost:6379"
