@@ -1,0 +1,437 @@
+# URL Shortener – Complete Production-Ready Audit, Bug Fixing, Feature Implementation & Optimization Prompt
+
+## Objective
+
+Analyze the **entire repository** before making any changes.
+
+Read every folder, file, page, component, API, middleware, controller, service, model, utility, database schema, authentication flow, URL generation logic, redirect service, analytics, caching, environment variables, Docker configuration, CI/CD workflow, logging system, monitoring setup, and deployment configuration.
+
+Do **NOT** make assumptions.
+
+Your goal is to transform this repository into a **fully production-ready, enterprise-grade URL Shortener platform** comparable to Bitly, TinyURL, Rebrandly, or Dub.co while preserving all existing functionality.
+
+Never remove working features unless absolutely necessary.
+
+---
+
+# Phase 1 – Complete Repository Audit
+
+Analyze the complete codebase.
+
+Understand:
+
+* Overall architecture
+* Folder structure
+* Frontend architecture
+* Backend architecture
+* API architecture
+* Database schema
+* Authentication flow
+* Authorization
+* URL shortening workflow
+* Redirect workflow
+* Analytics pipeline
+* QR Code generation
+* Custom alias handling
+* Expiration logic
+* Search functionality
+* Dashboard
+* Admin panel
+* User panel
+* Docker
+* Redis
+* Queue Workers
+* Logging
+* Monitoring
+* CI/CD
+
+Generate an internal dependency graph before modifying anything.
+
+---
+
+# Phase 2 – Complete Bug Fixing
+
+Fix every bug throughout the application.
+
+Including:
+
+* Runtime Errors
+* Build Errors
+* TypeScript Errors
+* API Failures
+* Database Errors
+* Authentication Bugs
+* Authorization Bugs
+* Redirect Bugs
+* Short URL Generation Bugs
+* QR Code Bugs
+* Analytics Bugs
+* Dashboard Bugs
+* Expiration Bugs
+* Search Bugs
+* Pagination Bugs
+* Validation Errors
+* Responsive UI Issues
+* Broken Images
+* Broken Navigation
+* Caching Issues
+* Docker Issues
+* Redis Issues
+* Console Errors
+* Memory Leaks
+
+Every API must return proper HTTP status codes and meaningful error messages.
+
+---
+
+# Phase 3 – Authentication & Authorization
+
+Implement and verify:
+
+* User Signup
+* User Login
+* Logout
+* Google Login (optional)
+* Email Verification
+* Forgot Password
+* Reset Password
+* JWT Authentication
+* Refresh Tokens
+* Protected Routes
+* Secure Session Handling
+* Role-Based Access Control
+
+Roles:
+
+* Guest
+* User
+* Admin
+
+Unauthorized users should never access protected resources.
+
+---
+
+# Phase 4 – URL Shortening
+
+Implement and verify:
+
+* Generate Short URLs
+* Custom Alias Support
+* Random Alias Generation
+* Collision Detection
+* Duplicate URL Handling
+* Vanity URLs
+* Bulk URL Shortening
+* Batch Import
+* Bulk Delete
+* Bulk Export
+
+Ensure every generated short URL is unique.
+
+---
+
+# Phase 5 – Redirect System
+
+Implement and verify:
+
+* Fast Redirection
+* Permanent Redirect (301)
+* Temporary Redirect (302)
+* Expired Link Handling
+* Disabled Link Handling
+* Broken Link Detection
+* Fallback Pages
+* Redirect Logging
+
+Optimize redirect latency.
+
+---
+
+# Phase 6 – QR Code
+
+Support:
+
+* QR Code Generation
+* Download QR Code
+* High Resolution QR Codes
+* Dark/Light Themes
+* Logo Embedding (optional)
+
+Each short URL should have a corresponding QR code.
+
+---
+
+# Phase 7 – Analytics Dashboard
+
+Track:
+
+* Total Clicks
+* Unique Visitors
+* Returning Visitors
+* Country
+* City
+* Device
+* Browser
+* Operating System
+* Referrer
+* UTM Parameters
+* Hourly Clicks
+* Daily Clicks
+* Weekly Clicks
+* Monthly Clicks
+* Top Links
+* Top Countries
+
+Display analytics using charts and graphs.
+
+---
+
+# Phase 8 – User Dashboard
+
+Users should manage:
+
+* Profile
+* API Keys (optional)
+* My URLs
+* Favorite URLs
+* Expired URLs
+* Deleted URLs
+* Archived URLs
+* Analytics
+* Billing (optional)
+
+Support:
+
+* Edit Short URLs
+* Delete URLs
+* Restore URLs
+* Archive URLs
+* Search URLs
+* Filter URLs
+* Sort URLs
+
+---
+
+# Phase 9 – Admin Panel
+
+Admin should manage:
+
+* Users
+* URLs
+* Analytics
+* Reports
+* Abuse Reports
+* Spam URLs
+* Blacklisted Domains
+* Settings
+* API Usage
+* System Health
+* Monitoring
+
+---
+
+# Phase 10 – Search & Filtering
+
+Support searching by:
+
+* Original URL
+* Short URL
+* Custom Alias
+* User
+* Tags
+
+Filters:
+
+* Creation Date
+* Expiration Date
+* Click Count
+* Status
+* Most Clicked
+* Recently Created
+
+---
+
+# Phase 11 – Expiration & Security
+
+Support:
+
+* Expiration Date
+* One-Time Links
+* Password Protected Links
+* Private Links
+* Public Links
+* Maximum Click Limits
+* Link Disable/Enable
+* Domain Blacklisting
+* Spam Detection
+
+---
+
+# Phase 12 – API
+
+Provide production-ready REST APIs for:
+
+* Create URL
+* Update URL
+* Delete URL
+* Redirect
+* Analytics
+* Search
+* Bulk Operations
+* Authentication
+
+Include:
+
+* API Documentation
+* Swagger/OpenAPI
+* Versioning
+* Rate Limiting
+* Validation
+
+---
+
+# Phase 13 – Performance Optimization
+
+Optimize:
+
+* Database Queries
+* Redirect Speed
+* Redis Caching
+* Lazy Loading
+* Pagination
+* Image Optimization
+* Bundle Size
+* API Response Time
+* Memory Usage
+* Connection Pooling
+
+Target:
+
+* Extremely fast redirect latency
+* Low memory usage
+* High scalability
+
+---
+
+# Phase 14 – Security
+
+Implement:
+
+* JWT
+* Password Hashing
+* Input Validation
+* XSS Protection
+* CSRF Protection
+* SQL Injection Prevention
+* Rate Limiting
+* Secure Cookies
+* Environment Variables
+* CSP Headers
+* Helmet
+* Audit Logging
+
+---
+
+# Phase 15 – Monitoring & Logging
+
+Implement:
+
+* Structured Logs
+* Error Logging
+* Request Logs
+* Click Logs
+* Performance Metrics
+* Health Checks
+* Readiness Checks
+* Liveness Checks
+* Prometheus Metrics (optional)
+* OpenTelemetry (optional)
+
+---
+
+# Phase 16 – Docker & Deployment
+
+Verify:
+
+* Dockerfile
+* Docker Compose
+* Multi-stage Builds
+* Environment Variables
+* CI/CD
+* Production Build
+* Health Checks
+* Logging
+* Monitoring
+
+---
+
+# Phase 17 – Testing
+
+Implement:
+
+* Unit Tests
+* Integration Tests
+* End-to-End Tests
+* API Tests
+* Redirect Tests
+* Analytics Tests
+* Authentication Tests
+* Load Tests
+* Security Tests
+* Edge Case Tests
+
+Aim for high code coverage.
+
+---
+
+# Phase 18 – Code Quality
+
+Refactor:
+
+* Duplicate Code
+* Unused Components
+* Dead Code
+* Unused APIs
+* Naming Conventions
+* Folder Structure
+* Type Safety
+* Reusable Components
+* Documentation
+
+Follow clean architecture and SOLID principles.
+
+---
+
+# Final End-to-End Verification
+
+Verify the following workflow:
+
+1. User registers and logs in.
+2. User creates a short URL.
+3. User optionally chooses a custom alias.
+4. QR code is generated successfully.
+5. Short URL redirects correctly.
+6. Analytics record every click accurately.
+7. Expired, disabled, and password-protected links behave correctly.
+8. User can search, edit, archive, and delete URLs.
+9. Admin can monitor users, links, and system health.
+10. APIs, database operations, authentication, analytics, redirect service, caching, and dashboards work correctly without errors.
+11. Verify security, scalability, responsiveness, and production readiness.
+12. Fix every remaining bug so the application is fully secure, optimized, scalable, reliable, and production-ready.
+
+Finally, generate a comprehensive report containing:
+
+* All bugs found
+* All bugs fixed
+* Files modified
+* New features implemented
+* Performance improvements
+* Security improvements
+* Database changes
+* API improvements
+* Analytics improvements
+* Infrastructure changes
+* Remaining issues (if any)
+* Recommendations for future enhancements
+
+Do not stop until every feature, API, workflow, redirect, analytics component, dashboard, and deployment configuration has been thoroughly tested, optimized, documented, and verified to be production-ready.

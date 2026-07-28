@@ -73,6 +73,11 @@ class JSLRUCache {
       this.map.delete(oldest);
     }
   }
+
+  // BUG FIX: delete method was missing — lruCacheDelete called cache.del?.(key) which always no-oped
+  delete(key: string): void {
+    this.map.delete(key);
+  }
 }
 
 // ─── JS Fallback: Consistent Hash ─────────────────────────────────────────
@@ -277,7 +282,12 @@ export function lruCachePut(key: string, value: string): void {
 export function lruCacheDelete(key: string): void {
   const cache = getLRUCache();
   if (!cache) return;
-  cache.del?.(key) ?? cache.delete?.(key);
+  // Use .delete() — JSLRUCache implements it; native addon may use .del()
+  if (typeof cache.delete === 'function') {
+    cache.delete(key);
+  } else if (typeof cache.del === 'function') {
+    cache.del(key);
+  }
 }
 
 export function consistentHashGetNode(key: string): string | null {
@@ -289,5 +299,61 @@ export function consistentHashAddNode(node: string): void {
   const ch = getConsistentHash();
   if (ch) {
     ch.addNode(node);
+  }
+}
+
+// ─── User-Agent Parsing ──────────────────────────────────────────────────
+// Lightweight inline UA parser — avoids external dependency
+
+export interface ParsedUA {
+  browser: string;
+  os: string;
+}
+
+export function parseUserAgent(ua?: string): ParsedUA {
+  if (!ua) return { browser: 'Unknown', os: 'Unknown' };
+  const s = ua.toLowerCase();
+
+  // Browser detection (order matters — check specific before generic)
+  let browser = 'Other';
+  if (s.includes('edg/') || s.includes('edge/')) browser = 'Edge';
+  else if (s.includes('opr/') || s.includes('opera/')) browser = 'Opera';
+  else if (s.includes('chrome/') && !s.includes('chromium')) browser = 'Chrome';
+  else if (s.includes('chromium/')) browser = 'Chromium';
+  else if (s.includes('firefox/') || s.includes('fxios/')) browser = 'Firefox';
+  else if (s.includes('safari/') && !s.includes('chrome')) browser = 'Safari';
+  else if (s.includes('msie') || s.includes('trident/')) browser = 'IE';
+  else if (s.includes('bot') || s.includes('crawler') || s.includes('spider') || s.includes('googlebot') || s.includes('bingbot')) browser = 'Bot';
+
+  // OS detection
+  let os = 'Other';
+  if (s.includes('windows nt')) os = 'Windows';
+  else if (s.includes('iphone') || s.includes('ipad')) os = 'iOS';
+  else if (s.includes('android')) os = 'Android';
+  else if (s.includes('macintosh') || s.includes('mac os x')) os = 'macOS';
+  else if (s.includes('linux')) os = 'Linux';
+  else if (s.includes('cros')) os = 'ChromeOS';
+
+  return { browser, os };
+}
+
+// ─── UTM Parameter Extraction ─────────────────────────────────────────────
+export interface UTMParams {
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+}
+
+export function extractUTM(referer?: string): UTMParams {
+  if (!referer) return {};
+  try {
+    const url = new URL(referer);
+    return {
+      utmSource: url.searchParams.get('utm_source') ?? undefined,
+      utmMedium: url.searchParams.get('utm_medium') ?? undefined,
+      utmCampaign: url.searchParams.get('utm_campaign') ?? undefined,
+    };
+  } catch {
+    return {};
   }
 }

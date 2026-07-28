@@ -17,7 +17,6 @@ export function useAuth() {
           setUser(currentUser);
         }
       } catch {
-        // 401 — not authenticated, that's fine
         if (!cancelled) {
           setUser(null);
         }
@@ -29,10 +28,7 @@ export function useAuth() {
     }
 
     checkAuth();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   const saveAuth = useCallback(async (user: User) => {
@@ -75,10 +71,12 @@ export function useAuth() {
   }, []);
 
   const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'ADMIN';
 
   return {
     user,
     isAuthenticated,
+    isAdmin,
     loading,
     error,
     saveAuth,

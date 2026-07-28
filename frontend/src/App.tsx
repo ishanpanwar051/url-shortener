@@ -8,14 +8,17 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Analytics } from './pages/Analytics';
+import { AdminPanel } from './pages/AdminPanel';
+import { NotFound } from './pages/NotFound';
 
 export default function App() {
-  const { isAuthenticated, user, saveAuth, logout, loading } = useAuth();
+  const { isAuthenticated, isAdmin, user, saveAuth, logout, loading } = useAuth();
 
   return (
     <div style={styles.app}>
       <Navbar
         isAuthenticated={isAuthenticated}
+        isAdmin={isAdmin}
         username={user?.username}
         onLogout={logout}
       />
@@ -39,6 +42,15 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute isAuthenticated={isAuthenticated} loading={loading} redirectTo="/login">
+              {isAdmin ? <AdminPanel /> : <NotFound />}
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );

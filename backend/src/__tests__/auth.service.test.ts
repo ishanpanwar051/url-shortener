@@ -35,12 +35,14 @@ describe('AuthService', () => {
         email: 'test@example.com',
         username: 'testuser',
         hashedPassword: 'hashed',
+        role: 'USER',
+        isActive: true,
       });
 
       const result = await authService.register('test@example.com', 'testuser', 'password123');
 
       expect(result).toHaveProperty('token', 'mock-jwt-token');
-      expect(result.user).toEqual({ id: 1, email: 'test@example.com', username: 'testuser' });
+      expect(result.user).toMatchObject({ id: 1, email: 'test@example.com', username: 'testuser' });
       expect(mockPrisma.user.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           email: 'test@example.com',
@@ -70,12 +72,14 @@ describe('AuthService', () => {
         email: 'test@example.com',
         username: 'testuser',
         hashedPassword: await bcrypt.hash('password123', 12),
+        role: 'USER',
+        isActive: true,
       });
 
       const result = await authService.login('test@example.com', 'password123');
 
       expect(result).toHaveProperty('token', 'mock-jwt-token');
-      expect(result.user).toEqual({ id: 1, email: 'test@example.com', username: 'testuser' });
+      expect(result.user).toMatchObject({ id: 1, email: 'test@example.com', username: 'testuser' });
     });
 
     it('should throw if user not found', async () => {
@@ -92,6 +96,8 @@ describe('AuthService', () => {
         email: 'test@example.com',
         username: 'testuser',
         hashedPassword: await bcrypt.hash('correctpassword', 12),
+        role: 'USER',
+        isActive: true,
       });
 
       await expect(

@@ -6,12 +6,13 @@ import { authRateLimiter } from '../middleware/rateLimiter';
 import { cookieConfig } from '../config';
 import { blacklistToken } from '../middleware/auth';
 import { z } from 'zod';
+import { AppError } from '../errors';
 
 const router = Router();
 
 const registerSchema = z.object({
   email: z.string().email(),
-  username: z.string().min(3).max(50),
+  username: z.string().min(3).max(50).regex(/^[a-zA-Z0-9_-]+$/, 'Username may only contain letters, numbers, hyphens, and underscores'),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
     .max(100)
@@ -22,7 +23,7 @@ const registerSchema = z.object({
 
 const loginSchema = z.object({
   email: z.string().email(),
-  password: z.string(),
+  password: z.string().min(1),
 });
 
 function setAuthCookie(res: Response, token: string): void {
@@ -37,18 +38,19 @@ router.post('/register', authRateLimiter, async (req: Request, res: Response) =>
   try {
     const data = registerSchema.parse(req.body);
     const { token, user } = await authService.register(data.email, data.username, data.password);
-
     setAuthCookie(res, token);
-
     res.status(201).json({ user });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       res.status(400).json({ error: 'Validation failed', details: err.errors });
       return;
     }
-    const message = err instanceof Error ? err.message : 'Registration failed';
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: err.message });
+      return;
+    }
     logger.error({ err }, 'Registration failed');
-    res.status(400).json({ error: message });
+    res.status(500).json({ error: 'Registration failed' });
   }
 });
 
@@ -56,13 +58,15 @@ router.post('/login', authRateLimiter, async (req: Request, res: Response) => {
   try {
     const data = loginSchema.parse(req.body);
     const { token, user } = await authService.login(data.email, data.password);
-
     setAuthCookie(res, token);
-
     res.json({ user });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       res.status(400).json({ error: 'Validation failed', details: err.errors });
+      return;
+    }
+    if (err instanceof AppError) {
+      res.status(err.statusCode).json({ error: err.message });
       return;
     }
     logger.error({ err }, 'Login failed');
@@ -98,7 +102,7 @@ router.get('/me', authMiddleware, async (req: Request, res: Response) => {
       return;
     }
     res.json({
-      user: { id: profile.id, email: profile.email, username: profile.username },
+      user: { id: profile.id, email: profile.email, username: profile.username, role: profile.role },
     });
   } catch (err) {
     logger.error({ err, userId: req.user?.userId }, 'Failed to fetch profile');

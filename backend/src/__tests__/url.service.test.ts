@@ -54,11 +54,14 @@ jest.mock('../redis', () => ({
 jest.mock('../utils/core', () => ({
   generateUniqueId: jest.fn().mockReturnValue(123456789),
   encodeBase62: jest.fn().mockReturnValue('abc123'),
+  bloomFilterInit: jest.fn(),
   bloomFilterInsert: jest.fn(),
   bloomFilterContains: jest.fn().mockReturnValue(true),
   lruCacheGet: jest.fn().mockReturnValue(null),
   lruCachePut: jest.fn(),
   lruCacheDelete: jest.fn(),
+  parseUserAgent: jest.fn().mockReturnValue({ browser: 'Chrome', os: 'Windows' }),
+  extractUTM: jest.fn().mockReturnValue({}),
 }));
 
 import { urlService } from '../services/url.service';

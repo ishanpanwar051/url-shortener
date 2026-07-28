@@ -8,6 +8,7 @@ export interface AuthPayload {
   userId: number;
   email?: string;
   username?: string;
+  role?: string;
 }
 
 declare global {
@@ -47,17 +48,13 @@ async function isTokenBlacklisted(token: string): Promise<boolean> {
 }
 
 export function extractToken(req: Request): string | null {
-  // 1. Check Authorization header (for API clients)
   const authHeader = req.headers.authorization;
   if (authHeader?.startsWith('Bearer ')) {
     return authHeader.split(' ')[1];
   }
-
-  // 2. Check httpOnly cookie (for browser SPA)
   if (req.cookies?.token) {
     return req.cookies.token;
   }
-
   return null;
 }
 
@@ -98,4 +95,14 @@ export async function optionalAuth(req: Request, _res: Response, next: NextFunct
     }
   }
   next();
+}
+
+export async function adminMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+  await authMiddleware(req, res, async () => {
+    if (req.user?.role !== 'ADMIN') {
+      res.status(403).json({ error: 'Admin access required' });
+      return;
+    }
+    next();
+  });
 }

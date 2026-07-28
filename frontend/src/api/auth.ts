@@ -4,6 +4,7 @@ export interface User {
   id: number;
   email: string;
   username: string;
+  role: string;
 }
 
 export interface AuthResponse {
@@ -30,7 +31,7 @@ export async function getCurrentUser(): Promise<User> {
   if ('user' in data && data.user) {
     return data.user;
   }
-  return { id: (data as User).id, email: (data as User).email, username: (data as User).username };
+  return { id: (data as User).id, email: (data as User).email, username: (data as User).username, role: (data as User).role || 'USER' };
 }
 
 export async function getProfile() {
