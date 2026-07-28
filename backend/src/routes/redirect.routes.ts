@@ -1,8 +1,8 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, IRouter } from 'express';
 import { urlService, FRONTEND_ROUTES } from '../services/url.service';
 import logger from '../utils/logger';
 
-const router = Router();
+const router: IRouter = Router();
 
 // Pass frontend routes through to SPA fallback
 router.use('/:shortCode', (req, res, next) => {
@@ -83,7 +83,7 @@ router.get('/:shortCode', async (req: Request, res: Response) => {
     }
 
     if ('longUrl' in result) {
-      res.redirect(302, result.longUrl);
+      res.redirect(302, result.longUrl!);
       return;
     }
 

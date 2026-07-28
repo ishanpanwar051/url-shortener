@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, IRouter } from 'express';
 import { authService } from '../services/auth.service';
 import { authMiddleware, extractToken } from '../middleware/auth';
 import logger from '../utils/logger';
@@ -8,7 +8,7 @@ import { blacklistToken } from '../middleware/auth';
 import { z } from 'zod';
 import { AppError } from '../errors';
 
-const router = Router();
+const router: IRouter = Router();
 
 const registerSchema = z.object({
   email: z.string().email(),

@@ -141,7 +141,7 @@ export function Analytics() {
           {data.clicksByDevice.length === 0 ? <p style={styles.muted}>No data</p> : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={data.clicksByDevice.map(d => ({ name: d.device || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
+                <Pie data={data.clicksByDevice.map(d => ({ name: d.device || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
                   {data.clicksByDevice.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
@@ -156,7 +156,7 @@ export function Analytics() {
           {data.clicksByBrowser.length === 0 ? <p style={styles.muted}>No data</p> : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={data.clicksByBrowser.map(d => ({ name: d.browser || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
+                <Pie data={data.clicksByBrowser.map(d => ({ name: d.browser || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
                   {data.clicksByBrowser.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />
@@ -171,7 +171,7 @@ export function Analytics() {
           {data.clicksByOs.length === 0 ? <p style={styles.muted}>No data</p> : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
-                <Pie data={data.clicksByOs.map(d => ({ name: d.os || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
+                <Pie data={data.clicksByOs.map(d => ({ name: d.os || 'Unknown', value: d.count }))} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false} fontSize={11}>
                   {data.clicksByOs.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Pie>
                 <Tooltip />

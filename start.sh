@@ -1,27 +1,24 @@
 #!/bin/bash
+set -euo pipefail
 
 echo "=== Starting Redis ==="
-redis-server --daemonize yes --logfile /tmp/redis.log --port 6379
+redis-server --daemonize yes --logfile /tmp/redis.log --port 6379 --bind 127.0.0.1
 sleep 1
-if redis-cli ping 2>/dev/null | grep -q PONG; then
-  echo "Redis is ready"
-else
-  echo "WARNING: Redis may not be ready yet, continuing..."
-fi
+redis-cli ping
+echo "Redis is ready"
 
 echo "=== Installing backend dependencies ==="
 cd backend
-npm install --legacy-peer-deps 2>&1 | tail -3
+npm install --legacy-peer-deps
 
 echo "=== Generating Prisma client ==="
-npx prisma generate 2>&1 | tail -3
+npx prisma generate
 
 echo "=== Running Prisma migrations ==="
-npx prisma migrate deploy 2>&1
+npx prisma migrate deploy
 
 echo "=== Starting backend on port 3001 ==="
 PORT=3001 npm run dev &
-BACKEND_PID=$!
 cd ..
 
 echo "=== Waiting for backend to be ready ==="
@@ -30,9 +27,18 @@ for i in $(seq 1 60); do
     echo "Backend ready after ${i}s"
     break
   fi
+  if [ "$i" -eq 60 ]; then
+    echo "ERROR: Backend did not start in time"
+    exit 1
+  fi
   sleep 1
 done
 
-echo "=== Starting frontend on port 3000 ==="
+echo "=== Installing frontend dependencies ==="
 cd frontend
+if [ ! -d node_modules ]; then
+  npm install --legacy-peer-deps
+fi
+
+echo "=== Starting frontend on port 3000 ==="
 PORT=3000 BROWSER=none npm start

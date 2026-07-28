@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, IRouter } from 'express';
 import { adminMiddleware } from '../middleware/auth';
 import { authService } from '../services/auth.service';
 import { urlService } from '../services/url.service';
@@ -6,7 +6,7 @@ import { AppError } from '../errors';
 import logger from '../utils/logger';
 import { z } from 'zod';
 
-const router = Router();
+const router: IRouter = Router();
 
 // All admin routes require ADMIN role
 router.use(adminMiddleware);

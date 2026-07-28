@@ -23,7 +23,7 @@ import adminRoutes from './routes/admin.routes';
 
 validateConfig();
 
-const app = express();
+const app: express.Application = express();
 
 let isShuttingDown = false;
 
@@ -56,7 +56,7 @@ app.use(corsMiddleware);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
 const csrfProtection = csrf({ cookie: true });
-app.use(csrfProtection);
+app.use(csrfProtection as unknown as express.RequestHandler);
 
 // Request ID middleware
 app.use((req, res, next) => {

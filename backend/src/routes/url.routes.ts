@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, IRouter } from 'express';
 import { urlService } from '../services/url.service';
 import { authMiddleware, optionalAuth } from '../middleware/auth';
 import { rateLimiter } from '../middleware/rateLimiter';
@@ -8,7 +8,7 @@ import QRCode from 'qrcode';
 import { z } from 'zod';
 import { config } from '../config';
 
-const router = Router();
+const router: IRouter = Router();
 
 function getPublicBaseUrl(req: Request): string {
   if (config.publicBaseUrl) {

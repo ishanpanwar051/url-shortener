@@ -23,48 +23,34 @@ A full-stack, production-ready URL shortener with analytics, QR codes, admin pan
 - **Security:** CSRF protection, Helmet headers, SSRF validation, bcrypt passwords, input validation (Zod)
 - **API Docs:** OpenAPI 3.0 spec at `/api/docs.json`, Swagger UI at `/api/docs`
 
-## Running Locally
+## Running on Replit
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL 15+
-- Redis 7+
+### How to Run
+Click **Run** — the `Start application` workflow runs `bash start.sh` which:
+1. Starts Redis (port 6379, daemonized)
+2. Installs backend dependencies & runs Prisma migrations
+3. Starts the Express backend (port 3001, ts-node-dev)
+4. Starts the React frontend (port 3000, CRA dev server — this is the webview)
 
-### Quick Start (Docker — Recommended)
-```bash
-# Copy env and fill in JWT_SECRET (generate with: openssl rand -base64 48)
-cp .env.example .env
-# Edit .env to set JWT_SECRET
+The frontend proxies `/api/*` requests to the backend on port 3001.
 
-docker compose up --build
-# App available at http://localhost:8080
-```
-
-### Without Docker
-```bash
-# Backend
-cd backend
-cp ../.env.example .env   # fill in DATABASE_URL, REDIS_URL, JWT_SECRET
-npm install
-npx prisma migrate deploy
-npm run dev               # runs on PORT=3000
-
-# Frontend (separate terminal)
-cd frontend
-npm install
-npm start                 # runs on PORT=3000 (proxied to backend)
-```
-
-### Environment Variables
-See `.env.example` for all options. Required:
-- `DATABASE_URL` — PostgreSQL connection string
-- `JWT_SECRET` — min 32 chars random string (`openssl rand -base64 48`)
-- `REDIS_URL` — Redis connection string
+### Environment (Replit-managed)
+- `DATABASE_URL` — injected automatically by Replit (PostgreSQL)
+- `JWT_SECRET` — set as a Replit Secret
+- `REDIS_URL` — set to `redis://localhost:6379`
+- `NODE_ENV` — set to `development`
+- `CORS_ORIGIN` — set to `*`
 
 ### After Schema Changes
 ```bash
-cd backend
-npx prisma migrate deploy   # applies all pending migrations
+cd backend && npx prisma migrate deploy
+```
+
+### Running Locally (Docker — Recommended)
+```bash
+cp .env.example .env   # fill in JWT_SECRET (openssl rand -base64 48)
+docker compose up --build
+# App at http://localhost:8080
 ```
 
 ## API Endpoints

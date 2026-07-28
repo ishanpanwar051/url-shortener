@@ -1,0 +1,1 @@
+- [URL Shortener Replit setup](url-shortener-setup.md) — key fixes needed to run this project on Replit (TypeScript errors, blocked packages, Redis, env wiring).

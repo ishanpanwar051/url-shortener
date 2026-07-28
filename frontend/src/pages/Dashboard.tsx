@@ -211,7 +211,7 @@ export function Dashboard() {
                     </div>
                   </td>
                   <td style={{ ...styles.td, textAlign: 'center', fontWeight: '600' }}>
-                    {typeof url.clicks === 'bigint' ? url.clicks.toString() : String(url.clicks)}
+                    {String(url.clicks)}
                   </td>
                   <td style={styles.td}>
                     <span style={{ ...styles.statusBadge, background: url.isActive ? '#d4edda' : '#f8d7da', color: url.isActive ? '#155724' : '#721c24' }}>
