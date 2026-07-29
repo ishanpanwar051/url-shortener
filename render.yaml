@@ -1,4 +1,17 @@
+databases:
+  - name: url-shortener-db
+    databaseName: urlshortener
+    user: urlshortener
+    plan: free
+
 services:
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  - type: redis
+    name: url-shortener-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+
+  # ── Backend (Express / TypeScript) ────────────────────────────────────────
   - type: web
     name: url-shortener-backend
     env: docker
@@ -8,16 +21,57 @@ services:
     plan: free
     envVars:
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: url-shortener-db
+          property: connectionString
       - key: REDIS_URL
-        sync: false
+        fromService:
+          type: redis
+          name: url-shortener-redis
+          property: connectionString
       - key: JWT_SECRET
-        sync: false
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
       - key: NODE_ENV
         value: production
-      - key: CORS_ORIGIN
-        value: "*"
       - key: PORT
         value: 10000
       - key: MACHINE_ID
         value: "1"
+      # Set CORS_ORIGIN to your frontend's Render URL after first deploy,
+      # e.g. https://url-shortener-frontend.onrender.com
+      - key: CORS_ORIGIN
+        sync: false
+      # Used for QR code generation — set to your frontend's public URL
+      - key: PUBLIC_BASE_URL
+        sync: false
+      # Optional — leave blank unless you want scoped cookies across subdomains
+      - key: COOKIE_DOMAIN
+        value: ""
+      # DSA tuning parameters (defaults are fine for most deployments)
+      - key: BLOOM_FILTER_EXPECTED
+        value: "1000000"
+      - key: BLOOM_FILTER_FPR
+        value: "0.01"
+      - key: LRU_CACHE_CAPACITY
+        value: "10000"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "60"
+      - key: SHORT_CODE_LENGTH
+        value: "7"
+      - key: DEFAULT_URL_EXPIRY_DAYS
+        value: "365"
+
+  # ── Frontend (React → nginx) ───────────────────────────────────────────────
+  - type: web
+    name: url-shortener-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      # Must be the full public URL of the backend service above,
+      # e.g. https://url-shortener-backend.onrender.com
+      - key: BACKEND_URL
+        sync: false
