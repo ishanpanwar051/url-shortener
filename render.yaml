@@ -10,6 +10,7 @@ services:
     name: url-shortener-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
 
   # ── Backend (Express / TypeScript) ────────────────────────────────────────
   - type: web
