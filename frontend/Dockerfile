@@ -1,6 +1,6 @@
 FROM node:20-alpine AS builder
 
-ARG REACT_APP_API_URL=https://url-shortener-api-e4hz.onrender.com
+ARG REACT_APP_API_URL=https://url-shortener-backend-final.onrender.com
 ENV REACT_APP_API_URL=$REACT_APP_API_URL
 
 WORKDIR /app
