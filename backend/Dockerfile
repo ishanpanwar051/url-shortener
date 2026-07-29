@@ -1,12 +1,11 @@
-FROM node:20-bookworm-slim AS builder
+FROM node:22-bookworm-slim AS builder
 
 RUN apt-get update -qq && apt-get install -y -qq openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
 COPY package*.json ./
-ENV NODE_OPTIONS="--no-warnings"
-RUN npm install --no-optional --no-audit --no-fund 2>&1 || npm install --no-optional --no-audit --no-fund 2>&1
+RUN npm install
 
 COPY prisma ./prisma
 RUN ./node_modules/.bin/prisma generate
@@ -15,7 +14,7 @@ COPY . .
 
 RUN npm run build
 
-FROM node:20-bookworm-slim
+FROM node:22-bookworm-slim
 
 WORKDIR /app
 
