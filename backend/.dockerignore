@@ -6,7 +6,6 @@ node_modules
 .env.local
 .env.production
 .gitkeep
-dist
 build
 .cache
 npm-debug.log*
