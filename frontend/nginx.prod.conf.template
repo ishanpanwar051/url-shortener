@@ -1,7 +1,7 @@
 resolver 8.8.8.8 valid=30s;
 
 server {
-    listen 80;
+    listen ${PORT:-80};
     server_name _;
     client_max_body_size 10M;
 
