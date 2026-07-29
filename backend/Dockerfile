@@ -1,19 +1,19 @@
 FROM node:20-alpine AS builder
 
-RUN apk add --no-cache python3 make g++ cmake
+RUN apk add --no-cache python3 make g++ cmake openssl
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+RUN npm ci --include=dev
 
 COPY prisma ./prisma
 RUN npm run prisma:generate
 
 COPY . .
 
-# Build C++ native module
-RUN cd core && cmake -B build && cmake --build build
+# Build C++ native module (optional — falls back to JS implementation)
+RUN cd core && cmake -B build && cmake --build build || echo "C++ native module build skipped (JS fallback will be used)"
 
 # Build TypeScript
 RUN npm run build
