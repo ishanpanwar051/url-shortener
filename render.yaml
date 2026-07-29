@@ -1,0 +1,45 @@
+# URL Shortener - Render Blueprint (One-Click Deploy)
+
+services:
+  # Backend API (Express + Prisma + PostgreSQL + Redis)
+  - type: web
+    name: url-shortener-backend
+    env: node
+    region: singapore
+    plan: free
+    rootDir: backend
+    healthCheckPath: /health
+    buildCommand: npm install && npx prisma@5 generate && npm run build
+    startCommand: npx prisma@5 migrate deploy && node dist/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: MACHINE_ID
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: "https://url-shortener-frontend.onrender.com"
+      - key: PUBLIC_BASE_URL
+        value: "https://url-shortener-frontend.onrender.com"
+
+  # Frontend (React SPA)
+  - type: static
+    name: url-shortener-frontend
+    region: singapore
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: REACT_APP_API_URL
+        value: "https://url-shortener-backend.onrender.com"

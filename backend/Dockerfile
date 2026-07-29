@@ -8,7 +8,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npm run prisma:generate
 
 COPY . .
 
@@ -36,4 +36,4 @@ EXPOSE 3000
 COPY --from=builder /app/prisma/migrations ./prisma/migrations
 
 # Run migrations then start the app
-CMD npx prisma migrate deploy && node dist/index.js
+CMD npm run prisma:migrate:deploy && node dist/index.js
