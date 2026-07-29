@@ -1,6 +1,6 @@
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
-RUN apk add --no-cache openssl
+RUN apt-get update -qq && apt-get install -y -qq openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -14,11 +14,11 @@ COPY . .
 
 RUN npm run build
 
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-RUN apk add --no-cache openssl
+RUN apt-get update -qq && apt-get install -y -qq openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
