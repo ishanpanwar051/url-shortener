@@ -29,33 +29,16 @@ services:
       - key: PUBLIC_BASE_URL
         value: "https://url-shortener-frontend.onrender.com"
 
-  # Frontend (React SPA)
-  - type: static
+  # Frontend (React SPA served via Nginx + Docker)
+  - type: web
     name: url-shortener-frontend
+    env: docker
     region: singapore
+    plan: free
     rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    dockerContext: .
+    dockerfilePath: Dockerfile
+    healthCheckPath: /
     envVars:
       - key: REACT_APP_API_URL
         value: "https://url-shortener-backend.onrender.com"
-
-  # PostgreSQL Database
-  - type: pserv
-    name: url-shortener-postgres
-    region: singapore
-    plan: free
-    databaseName: urlshortener
-    maxconnections: 20
-
-  # Redis Database
-  - type: redis
-    name: url-shortener-redis
-    region: singapore
-    plan: free
-    maxmemoryPolicy: allkeys-lru
-    ipAllowList: []
