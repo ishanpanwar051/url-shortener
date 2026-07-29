@@ -1,17 +1,17 @@
-FROM node:20-alpine
+FROM node:20-slim
 
-RUN apk add --no-cache openssl
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends openssl ca-certificates && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
+RUN npm ci
+
 COPY prisma ./prisma
 COPY dist ./dist
 
-RUN npm install --ignore-scripts 2>&1 | tail -5
-
-RUN ./node_modules/.bin/prisma generate 2>&1 | tail -5
+RUN npx prisma generate
 
 EXPOSE 10000
 
-CMD ./node_modules/.bin/prisma migrate deploy && node dist/index.js
+CMD npx prisma migrate deploy && node dist/index.js
