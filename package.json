@@ -6,7 +6,8 @@
   "scripts": {
     "test": "cd backend && npm test",
     "build": "cd backend && npm run build",
-    "dev": "cd backend && npm run dev"
+    "dev": "cd backend && npm run dev",
+    "start": "cd backend && node dist/index.js"
   },
   "keywords": [],
   "author": "",

@@ -1,8 +1,8 @@
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["cd backend && npm run build"]
 
 [phases.start]
-cmd = "npm start"
+cmd = "cd backend && node dist/index.js"
 
 [variables]
 NODE_ENV = "production"

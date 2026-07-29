@@ -16,10 +16,12 @@ services:
   - type: web
     name: url-shortener-backend
     env: docker
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: ./backend
-    healthCheckPath: /health
+    region: singapore
     plan: free
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    healthCheckTimeout: 120
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -68,9 +70,10 @@ services:
   - type: web
     name: url-shortener-frontend
     env: docker
-    dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
+    dockerfilePath: ./frontend/Dockerfile
     plan: free
+    healthCheckPath: /
     envVars:
       # Must be the full public URL of the backend service above,
       # e.g. https://url-shortener-backend.onrender.com
