@@ -5,12 +5,12 @@ RUN apk add --no-cache openssl
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
-
 COPY prisma ./prisma
-RUN ./node_modules/.bin/prisma generate
-
 COPY dist ./dist
+
+RUN npm install --ignore-scripts 2>&1 | tail -5
+
+RUN ./node_modules/.bin/prisma generate 2>&1 | tail -5
 
 EXPOSE 10000
 
