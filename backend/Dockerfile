@@ -5,7 +5,7 @@ RUN apk add --no-cache python3 make g++ cmake openssl
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --include=dev
+RUN npm install
 
 COPY prisma ./prisma
 RUN npm run prisma:generate
