@@ -4,13 +4,13 @@ services:
   # Backend API (Express + Prisma + PostgreSQL + Redis)
   - type: web
     name: url-shortener-backend
-    env: node
+    env: docker
     region: singapore
     plan: free
     rootDir: backend
+    dockerContext: .
+    dockerfilePath: Dockerfile
     healthCheckPath: /health
-    buildCommand: npm install && npx prisma@5 generate && npm run build
-    startCommand: npx prisma@5 migrate deploy && node dist/index.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -43,3 +43,19 @@ services:
     envVars:
       - key: REACT_APP_API_URL
         value: "https://url-shortener-backend.onrender.com"
+
+  # PostgreSQL Database
+  - type: pserv
+    name: url-shortener-postgres
+    region: singapore
+    plan: free
+    databaseName: urlshortener
+    maxconnections: 20
+
+  # Redis Database
+  - type: redis
+    name: url-shortener-redis
+    region: singapore
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
