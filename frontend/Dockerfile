@@ -15,10 +15,9 @@ FROM nginx:alpine
 
 COPY --from=builder /app/build /usr/share/nginx/html
 
-# Use template so BACKEND_URL env var is substituted at container start
 COPY nginx.prod.conf.template /etc/nginx/templates/default.conf.template
+ENV NGINX_ENVSUBST_TEMPLATES=$PORT
 
 EXPOSE 80
 
-# nginx docker image auto-runs envsubst on /etc/nginx/templates/*.template
 CMD ["nginx", "-g", "daemon off;"]
