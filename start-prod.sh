@@ -20,19 +20,5 @@ npx prisma migrate deploy
 echo "=== Building backend ==="
 npm run build
 
-cd ..
-
-echo "=== Installing frontend dependencies ==="
-cd frontend
-if [ ! -d node_modules ]; then
-  npm install --legacy-peer-deps
-fi
-
-echo "=== Building frontend ==="
-npm run build
-
-cd ..
-
-echo "=== Starting backend (production) on port 3000 ==="
-cd backend
-PORT=3000 SERVE_STATIC=true node dist/index.js
+echo "=== Starting backend on port 3000 ==="
+PORT=3000 node dist/index.js

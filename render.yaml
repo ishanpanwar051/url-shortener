@@ -1,44 +1,39 @@
-# URL Shortener - Render Blueprint (One-Click Deploy)
-
 services:
-  # Backend API (Express + Prisma + PostgreSQL + Redis)
   - type: web
     name: url-shortener-backend
     env: docker
-    region: singapore
-    plan: free
-    rootDir: backend
-    dockerContext: .
-    dockerfilePath: Dockerfile
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
     healthCheckPath: /health
+    plan: free
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: url-shortener-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: url-shortener-redis
+          property: connectionString
+      - key: JWT_SECRET
+        sync: false
       - key: NODE_ENV
         value: production
+      - key: CORS_ORIGIN
+        value: "*"
       - key: PORT
-        value: "3000"
+        value: 10000
       - key: MACHINE_ID
         value: "1"
-      - key: DATABASE_URL
-        sync: false
-      - key: REDIS_URL
-        sync: false
-      - key: JWT_SECRET
-        generateValue: true
-      - key: CORS_ORIGIN
-        value: "https://url-shortener-frontend.onrender.com"
-      - key: PUBLIC_BASE_URL
-        value: "https://url-shortener-frontend.onrender.com"
 
-  # Frontend (React SPA served via Nginx + Docker)
-  - type: web
-    name: url-shortener-frontend
-    env: docker
-    region: singapore
+  - type: redis
+    name: url-shortener-redis
     plan: free
-    rootDir: frontend
-    dockerContext: .
-    dockerfilePath: Dockerfile
-    healthCheckPath: /
-    envVars:
-      - key: REACT_APP_API_URL
-        value: "https://url-shortener-backend.onrender.com"
+    maxmemoryPolicy: allkeys-lru
+
+databases:
+  - name: url-shortener-db
+    databaseName: urlshortener
+    user: urlshortener
+    plan: free
