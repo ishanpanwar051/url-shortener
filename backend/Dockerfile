@@ -8,11 +8,10 @@ COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN ./node_modules/.bin/prisma generate
 
 COPY . .
 
-# Build TypeScript
 RUN npm run build
 
 FROM node:20-alpine
@@ -28,4 +27,4 @@ COPY package*.json ./
 
 EXPOSE 10000
 
-CMD npx prisma migrate deploy && node dist/index.js
+CMD ./node_modules/.bin/prisma migrate deploy && node dist/index.js
