@@ -1,8 +1,12 @@
+[phases.setup]
+cmds = ["npm install"]
+
 [phases.build]
-cmds = ["cd backend && npm run build"]
+cmds = ["npx prisma generate", "npm run build"]
 
 [phases.start]
-cmd = "cd backend && node dist/index.js"
+cmd = "npx prisma migrate deploy && node backend/dist/index.js"
 
 [variables]
 NODE_ENV = "production"
+NPM_CONFIG_PRODUCTION = "false"
