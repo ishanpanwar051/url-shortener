@@ -31,6 +31,7 @@ services:
     name: url-shortener-redis
     plan: free
     maxmemoryPolicy: allkeys-lru
+    ipAllowList: []
 
 databases:
   - name: url-shortener-db
