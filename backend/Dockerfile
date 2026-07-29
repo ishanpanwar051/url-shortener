@@ -5,7 +5,8 @@ RUN apt-get update -qq && apt-get install -y -qq openssl ca-certificates && rm -
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
+ENV NODE_OPTIONS="--no-warnings"
+RUN npm install --no-optional --no-audit --no-fund 2>&1 || npm install --no-optional --no-audit --no-fund 2>&1
 
 COPY prisma ./prisma
 RUN ./node_modules/.bin/prisma generate
