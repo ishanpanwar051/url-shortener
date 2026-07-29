@@ -12,10 +12,7 @@ services:
           name: url-shortener-db
           property: connectionString
       - key: REDIS_URL
-        fromService:
-          type: redis
-          name: url-shortener-redis
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         sync: false
       - key: NODE_ENV
@@ -26,12 +23,6 @@ services:
         value: 10000
       - key: MACHINE_ID
         value: "1"
-
-  - type: redis
-    name: url-shortener-redis
-    plan: free
-    maxmemoryPolicy: allkeys-lru
-    ipAllowList: []
 
 databases:
   - name: url-shortener-db
