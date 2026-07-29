@@ -1,4 +1,4 @@
-modules = ["nodejs-20", "bash"]
+modules = ["nodejs-20", "bash", "postgresql-16"]
 
 [nix]
 channel = "stable-25_05"
@@ -53,3 +53,11 @@ exposeLocalhost = true
 CORS_ORIGIN = "*"
 NODE_ENV = "development"
 REDIS_URL = "redis://localhost:6379"
+
+[userenv.production]
+PORT = "3000"
+SERVE_STATIC = "true"
+
+[deployment]
+deploymentTarget = "vm"
+run = ["bash", "start-prod.sh"]

@@ -7,6 +7,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import path from 'path';
 import cookieParser from 'cookie-parser';
 import csrf from 'csurf';
 import { v4 as uuidv4 } from 'uuid';
@@ -156,11 +157,24 @@ SwaggerUIBundle({
 </html>`);
 });
 
+// Serve React frontend static assets in production
+if (process.env.SERVE_STATIC === 'true') {
+  const staticPath = path.join(__dirname, '../../frontend/build');
+  app.use(express.static(staticPath, { index: false }));
+}
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', urlRoutes);
 app.use('/', redirectRoutes);
+
+// SPA fallback — serve React app for all unmatched routes
+if (process.env.SERVE_STATIC === 'true') {
+  app.get('*', (_req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/build', 'index.html'));
+  });
+}
 
 // Global error handler
 app.use((err: Error & { code?: string }, req: express.Request, res: express.Response, next: express.NextFunction) => {
