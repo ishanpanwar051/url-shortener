@@ -1,0 +1,122 @@
+2026-07-29T15:31:04.994832811Z ==> Cloning from https://github.com/ishanpanwar051/url-shortener
+2026-07-29T15:31:05.350187021Z ==> Checking out commit 22a0e154b7d6691912252e8172bbd9beb5c7fde6 in branch main
+2026-07-29T15:31:06.059406775Z #1 [internal] load build definition from Dockerfile
+2026-07-29T15:31:06.05942017Z #1 transferring dockerfile: 556B done
+2026-07-29T15:31:06.059421209Z #1 DONE 0.0s
+2026-07-29T15:31:06.059422102Z 
+2026-07-29T15:31:06.059422939Z #2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-07-29T15:31:06.528355684Z #2 ...
+2026-07-29T15:31:06.528374312Z 
+2026-07-29T15:31:06.528376132Z #3 [auth] library/node:pull render-prod/docker-mirror-repository/library/node:pull token for us-west1-docker.pkg.dev
+2026-07-29T15:31:06.528377274Z #3 DONE 0.0s
+2026-07-29T15:31:06.67762246Z 
+2026-07-29T15:31:06.677639969Z #2 [internal] load metadata for docker.io/library/node:20-alpine
+2026-07-29T15:31:08.383709187Z #2 DONE 2.5s
+2026-07-29T15:31:08.55813966Z 
+2026-07-29T15:31:08.558156939Z #4 [internal] load .dockerignore
+2026-07-29T15:31:08.558158878Z #4 transferring context: 180B done
+2026-07-29T15:31:08.558160058Z #4 DONE 0.0s
+2026-07-29T15:31:08.558161133Z 
+2026-07-29T15:31:08.558162696Z #5 [internal] load build context
+2026-07-29T15:31:08.558174338Z #5 transferring context: 471.03kB done
+2026-07-29T15:31:08.558181154Z #5 DONE 0.0s
+2026-07-29T15:31:08.558182035Z 
+2026-07-29T15:31:08.558183714Z #6 [builder 1/9] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+2026-07-29T15:31:08.558185374Z #6 resolve docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293 done
+2026-07-29T15:31:10.022724854Z #6 extracting sha256:6a0ac1617861a677b045b7ff88545213ec31c0ff08763195a70a4a5adda577bb 0.1s done
+2026-07-29T15:31:10.45064508Z #6 extracting sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287
+2026-07-29T15:31:11.119429971Z #6 extracting sha256:4feea04c154301db6f4a496efa397b3db96603b1c009c797cfdde77bea8b3287 0.8s done
+2026-07-29T15:31:11.119442727Z #6 DONE 2.7s
+2026-07-29T15:31:11.321678633Z 
+2026-07-29T15:31:11.321685087Z #6 [builder 1/9] FROM docker.io/library/node:20-alpine@sha256:fb4cd12c85ee03686f6af5362a0b0d56d50c58a04632e6c0fb8363f609372293
+2026-07-29T15:31:11.321686509Z #6 extracting sha256:b2cbbfe903b0821005780971ddc5892edcc4ce74c5a48d82e1d2b382edac3122 0.0s done
+2026-07-29T15:31:11.321687457Z #6 extracting sha256:fff4e2c1b189bf87d63ad8bd07f7f4eb288d6f2b6a07a8bb44c60e8c075d2096 0.0s done
+2026-07-29T15:31:11.32168826Z #6 DONE 2.8s
+2026-07-29T15:31:11.32168902Z 
+2026-07-29T15:31:11.321690404Z #7 [stage-1 2/7] WORKDIR /app
+2026-07-29T15:31:11.321691405Z #7 DONE 0.0s
+2026-07-29T15:31:11.321692176Z 
+2026-07-29T15:31:11.321693534Z #8 [stage-1 3/7] RUN apk add --no-cache openssl
+2026-07-29T15:31:11.722814523Z #8 0.354 (1/3) Upgrading libcrypto3 (3.5.6-r0 -> 3.5.7-r0)
+2026-07-29T15:31:11.722833125Z #8 0.382 (2/3) Upgrading libssl3 (3.5.6-r0 -> 3.5.7-r0)
+2026-07-29T15:31:11.722835573Z #8 0.389 (3/3) Installing openssl (3.5.7-r0)
+2026-07-29T15:31:11.722836562Z #8 0.395 Executing busybox-1.37.0-r30.trigger
+2026-07-29T15:31:11.722837475Z #8 0.401 OK: 11.7 MiB in 19 packages
+2026-07-29T15:31:11.830754949Z #8 ...
+2026-07-29T15:31:11.830767134Z 
+2026-07-29T15:31:11.830770122Z #9 [builder 2/9] RUN apk add --no-cache openssl
+2026-07-29T15:31:11.830772825Z #9 0.353 (1/3) Upgrading libcrypto3 (3.5.6-r0 -> 3.5.7-r0)
+2026-07-29T15:31:11.83077403Z #9 0.384 (2/3) Upgrading libssl3 (3.5.6-r0 -> 3.5.7-r0)
+2026-07-29T15:31:11.830775054Z #9 0.391 (3/3) Installing openssl (3.5.7-r0)
+2026-07-29T15:31:11.830776118Z #9 0.398 Executing busybox-1.37.0-r30.trigger
+2026-07-29T15:31:11.830784723Z #9 0.403 OK: 11.7 MiB in 19 packages
+2026-07-29T15:31:11.830786025Z #9 DONE 0.7s
+2026-07-29T15:31:12.030941573Z 
+2026-07-29T15:31:12.030956156Z #8 [stage-1 3/7] RUN apk add --no-cache openssl
+2026-07-29T15:31:12.030957432Z #8 DONE 0.7s
+2026-07-29T15:31:12.030958244Z 
+2026-07-29T15:31:12.030960967Z #10 [builder 3/9] WORKDIR /app
+2026-07-29T15:31:12.030961774Z #10 DONE 0.0s
+2026-07-29T15:31:12.030962604Z 
+2026-07-29T15:31:12.030963595Z #11 [builder 4/9] COPY package*.json ./
+2026-07-29T15:31:12.030965416Z #11 DONE 0.0s
+2026-07-29T15:31:12.030966127Z 
+2026-07-29T15:31:12.030967382Z #12 [builder 5/9] RUN npm install --legacy-peer-deps
+2026-07-29T15:32:22.962300605Z #12 71.08 npm notice
+2026-07-29T15:32:22.962323803Z #12 71.08 npm notice New major version of npm available! 10.8.2 -> 12.0.1
+2026-07-29T15:32:22.962325551Z #12 71.08 npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.0.1
+2026-07-29T15:32:22.962326989Z #12 71.08 npm notice To update run: npm install -g npm@12.0.1
+2026-07-29T15:32:22.962327798Z #12 71.08 npm notice
+2026-07-29T15:32:22.962329177Z #12 71.08 npm error Exit handler never called!
+2026-07-29T15:32:22.962330446Z #12 71.08 npm error This is an error with npm itself. Please report this error at:
+2026-07-29T15:32:22.962331257Z #12 71.08 npm error   <https://github.com/npm/cli/issues>
+2026-07-29T15:32:23.11278423Z #12 71.08 npm error A complete log of this run can be found in: /root/.npm/_logs/2026-07-29T15_31_12_006Z-debug-0.log
+2026-07-29T15:32:23.392770743Z #12 DONE 71.5s
+2026-07-29T15:32:23.571941119Z 
+2026-07-29T15:32:23.57195202Z #13 [builder 6/9] COPY prisma ./prisma
+2026-07-29T15:32:23.571953156Z #13 DONE 0.0s
+2026-07-29T15:32:23.571954141Z 
+2026-07-29T15:32:23.571955007Z #14 [builder 7/9] RUN npx prisma generate
+2026-07-29T15:32:25.223086668Z #14 1.801 npm warn exec The following package was not found and will be installed: prisma@7.9.1
+2026-07-29T15:32:30.685573106Z #14 7.264 npm warn EBADENGINE Unsupported engine {
+2026-07-29T15:32:30.6855844Z #14 7.264 npm warn EBADENGINE   package: '@prisma/streams-local@0.1.11',
+2026-07-29T15:32:30.685585381Z #14 7.264 npm warn EBADENGINE   required: { bun: '>=1.2.0', node: '>=22.0.0' },
+2026-07-29T15:32:30.685586254Z #14 7.264 npm warn EBADENGINE   current: { node: 'v20.20.2', npm: '10.8.2' }
+2026-07-29T15:32:30.68558725Z #14 7.264 npm warn EBADENGINE }
+2026-07-29T15:32:33.692865489Z #14 10.27 Prisma schema loaded from prisma/schema.prisma.
+2026-07-29T15:32:33.754085731Z #14 10.27 Error: Prisma schema validation - (get-config wasm)
+2026-07-29T15:32:33.754099621Z #14 10.27 Error code: P1012
+2026-07-29T15:32:33.75410127Z #14 10.27 error: The datasource property `url` is no longer supported in schema files. Move connection URLs for Migrate to `prisma.config.ts` and pass either `adapter` for a direct database connection or `accelerateUrl` for Accelerate to the `PrismaClient` constructor. See https://pris.ly/d/config-datasource and https://pris.ly/d/prisma7-client-config
+2026-07-29T15:32:33.754103832Z #14 10.27   -->  prisma/schema.prisma:8
+2026-07-29T15:32:33.754104773Z #14 10.27    | 
+2026-07-29T15:32:33.754105698Z #14 10.27  7 |   provider = "postgresql"
+2026-07-29T15:32:33.754106489Z #14 10.27  8 |   url      = env("DATABASE_URL")
+2026-07-29T15:32:33.754107265Z #14 10.27    | 
+2026-07-29T15:32:33.754108046Z #14 10.27 
+2026-07-29T15:32:33.754108834Z #14 10.27 Validation Error Count: 1
+2026-07-29T15:32:33.75410965Z #14 10.27 [Context: getConfig]
+2026-07-29T15:32:33.754111313Z #14 10.27 
+2026-07-29T15:32:33.75411211Z #14 10.27 Prisma CLI Version : 7.9.1
+2026-07-29T15:32:33.754113416Z #14 ERROR: process "/bin/sh -c npx prisma generate" did not complete successfully: exit code: 1
+2026-07-29T15:32:33.75411967Z ------
+2026-07-29T15:32:33.754120686Z  > [builder 7/9] RUN npx prisma generate:
+2026-07-29T15:32:33.754121455Z 10.27   -->  prisma/schema.prisma:8
+2026-07-29T15:32:33.754122272Z 10.27    | 
+2026-07-29T15:32:33.7541232Z 10.27  7 |   provider = "postgresql"
+2026-07-29T15:32:33.754123974Z 10.27  8 |   url      = env("DATABASE_URL")
+2026-07-29T15:32:33.754124746Z 10.27    | 
+2026-07-29T15:32:33.754125623Z 10.27 
+2026-07-29T15:32:33.754126426Z 10.27 Validation Error Count: 1
+2026-07-29T15:32:33.754127211Z 10.27 [Context: getConfig]
+2026-07-29T15:32:33.754127946Z 10.27 
+2026-07-29T15:32:33.754128783Z 10.27 Prisma CLI Version : 7.9.1
+2026-07-29T15:32:33.754130021Z ------
+2026-07-29T15:32:33.75458612Z Dockerfile:11
+2026-07-29T15:32:33.754589356Z --------------------
+2026-07-29T15:32:33.754590365Z    9 |     
+2026-07-29T15:32:33.754591484Z   10 |     COPY prisma ./prisma
+2026-07-29T15:32:33.754592739Z   11 | >>> RUN npx prisma generate
+2026-07-29T15:32:33.754593576Z   12 |     
+2026-07-29T15:32:33.754594334Z   13 |     COPY . .
+2026-07-29T15:32:33.754596259Z --------------------
+2026-07-29T15:32:33.754597442Z error: failed to solve: process "/bin/sh -c npx prisma generate" did not complete successfully: exit code: 1
