@@ -185,6 +185,7 @@ router.get('/qr/:shortCode', rateLimiter, optionalAuth, async (req: Request, res
     res.setHeader('Content-Type', 'image/png');
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.setHeader('Content-Disposition', `inline; filename="${shortCode}-qr.png"`);
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
     res.send(qrBuffer);
   } catch (err) {
     handleError(err, res);
