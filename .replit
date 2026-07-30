@@ -60,5 +60,5 @@ PORT = "3000"
 SERVE_STATIC = "true"
 
 [deployment]
-deploymentTarget = "vm"
+deploymentTarget = "cloudrun"
 run = ["bash", "start-prod.sh"]
