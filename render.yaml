@@ -18,9 +18,8 @@ services:
     env: docker
     region: singapore
     plan: free
-    rootDir: ./backend
-    dockerContext: .
-    dockerfilePath: Dockerfile
+    dockerContext: backend
+    dockerfilePath: backend/Dockerfile
     healthCheckPath: /health
     healthCheckTimeout: 120
     envVars:
@@ -68,8 +67,8 @@ services:
   - type: web
     name: url-shortener-frontend
     env: docker
-    dockerContext: ./frontend
-    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: frontend
+    dockerfilePath: frontend/Dockerfile
     plan: free
     healthCheckPath: /
     envVars:
