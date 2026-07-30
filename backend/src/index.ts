@@ -56,7 +56,7 @@ const corsMiddleware = cors({
 app.use(corsMiddleware);
 app.use(express.json({ limit: '100kb' }));
 app.use(cookieParser());
-const csrfProtection = csrf({ cookie: true });
+const csrfProtection = csrf({ cookie: { httpOnly: false, secure: true, sameSite: 'none' } });
 app.use(csrfProtection as unknown as express.RequestHandler);
 
 // Request ID middleware
