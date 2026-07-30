@@ -8,11 +8,11 @@ COPY package*.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 
 COPY prisma ./prisma
-RUN npx prisma generate
+RUN npx prisma@5 generate
 
 COPY dist ./dist
 COPY package*.json ./
 
 EXPOSE 10000
 
-CMD npx prisma migrate deploy && node dist/index.js
+CMD npx prisma@5 migrate deploy && node dist/index.js
