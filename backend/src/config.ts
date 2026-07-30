@@ -67,8 +67,8 @@ export const cookieConfig: {
   name: 'token',
   options: {
     httpOnly: true,
-    secure: config.isProduction,
-    sameSite: 'strict',
+    secure: true,
+    sameSite: 'none',
     path: '/',
     domain: config.cookieDomain,
     maxAge: SEVEN_DAYS_MS,
