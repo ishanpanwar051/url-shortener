@@ -15,11 +15,12 @@ services:
   # ── Backend (Express / TypeScript) ────────────────────────────────────────
   - type: web
     name: url-shortener-backend
-    env: docker
+    env: node
     region: singapore
     plan: free
-    dockerContext: ./backend
-    dockerfilePath: ./backend/Dockerfile
+    rootDir: ./backend
+    buildCommand: npm ci && npx prisma generate && npm run build
+    startCommand: npx prisma migrate deploy && node dist/index.js
     healthCheckPath: /health
     healthCheckTimeout: 120
     envVars:
@@ -42,13 +43,10 @@ services:
         value: 10000
       - key: MACHINE_ID
         value: "1"
-      # Set CORS_ORIGIN to your frontend's Render URL after first deploy,
-      # e.g. https://url-shortener-frontend.onrender.com
       - key: CORS_ORIGIN
-        sync: false
-      # Used for QR code generation — set to your frontend's public URL
+        value: https://url-shortener-frontend-2zi2.onrender.com
       - key: PUBLIC_BASE_URL
-        sync: false
+        value: https://url-shortener-frontend-2zi2.onrender.com
       # Optional — leave blank unless you want scoped cookies across subdomains
       - key: COOKIE_DOMAIN
         value: ""
