@@ -54,6 +54,7 @@ CORS_ORIGIN = "https://url-shortener-beige-eight.vercel.app"
 NODE_ENV = "development"
 REDIS_URL = "redis://localhost:6379"
 JWT_SECRET = "8d2b7a4f9c6e1a3b5f8d0e2c7a9b4f1d6e8c3a5f7b9d1e4"
+PUBLIC_BASE_URL = "https://url-shortener-beige-eight.vercel.app"
 
 [userenv.production]
 PORT = "3000"
